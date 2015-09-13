@@ -1,0 +1,297 @@
+本地上传percona-server-5.6.25-73.1.tar.gz
+
+安装mysql
+yum -y install git gcc gcc-c++ make cmake autoconf automake
+yum -y install bison bison-devel zlib* fiex* libxml* openssl openssl-devel readline-devel libaio-devel ncurses ncurses-devel libmcrypt* libtool-ltdl-devel*
+
+cd /tmp
+tar zxvf percona-server-5.6.25-73.1.tar.gz
+cd percona-server-5.6.25-73.1
+
+groupadd mysql       
+useradd mysql -g mysql -s /sbin/nologin
+mkdir -p /data/mysql/logs
+chown -R mysql:mysql /data/mysql  
+
+cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
+	-DMYSQL_DATADIR=/data/mysql/ \
+	-DSYSCONFDIR=/etc \
+	-DWITH_MYISAM_STORAGE_ENGINE=1 \
+	-DWITH_INNOBASE_STORAGE_ENGINE=1 \
+	-DWITH_ARCHIVE_STORAGE_ENGINE=1 \
+	-DWITH_BLACKHOLE_STORAGE_ENGINE=1 \
+	-DWITH_PERFSCHEMA_STORAGE_ENGINE=1 \
+	-DWITH_FEDERATED_STORAGE_ENGINE=1 \
+	-DMYSQL_UNIX_ADDR=/data/mysql/mysqld.sock \
+	-DMYSQL_TCP_PORT=3306 \
+	-DENABLED_LOCAL_INFILE=1 \
+	-DWITH_PARTITION_STORAGE_ENGINE=1 \
+	-DEXTRA_CHARSETS=all \
+	-DDEFAULT_CHARSET=utf8 \
+	-DDEFAULT_COLLATION=utf8_general_ci 
+
+多次编译需删除
+rm -rf CMakeCache.txt
+	
+make -j8
+make install
+
+cd /usr/local/mysql
+chown mysql.mysql -R .          
+rm -rf /etc/my.cnf                
+cp support-files/my-default.cnf /etc/my.cnf  
+chmod 755 scripts/mysql_install_db        
+scripts/mysql_install_db  --user=mysql  --basedir=/usr/local/mysql --datadir=/data/mysql/ --no-defaults
+cp support-files/mysql.server /etc/init.d/mysqld
+chmod 755 /etc/init.d/mysqld
+chkconfig --add mysqld
+chkconfig mysqld on
+service mysqld start
+vi /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 3306 -j ACCEPT 
+:wq
+# service iptables restart
+
+将mysql加入path
+# vi /etc/profile
+export PATH=$PATH:/usr/local/mysql/bin
+:wq
+# source /etc/profile
+# mysql --version
+
+初始化root密码
+# mysqladmin -u root password
+
+# mysql -u root -p                                     
+mysql> use mysql;
+mysql> delete from user where password='';
+mysql> flush privileges;
+mysql> UPDATE user SET Host='%' WHERE User = 'root' ;
+mysql> UPDATE user SET Password = password ( 'abc@123' ),Host='%' WHERE User = 'root' ;
+mysql> flush privileges;
+mysql> grant all privileges on *.* to youruser@'%' identified by "yourpassword";
+mysql> flush privileges;
+mysql> select User,Password,Host from user;
+mysql> exit;
+至此，mysql安装已经全部结束。
+
+mysql master config
+vi /etc/my.cnf
+[mysqld]
+server-id=1
+log-bin=mysqlmaster-bin.log
+sync_binlog=1
+innodb_buffer_pool_size=512M
+innodb_flush_log_at_trx_commit=1
+lower_case_table_names=1
+log_bin_trust_function_creators=1
+datadir=/data/mysql
+
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+:wq
+
+#mysql slave config
+vi /etc/my.cnf
+[mysqld]
+server-id=2
+log-bin=mysqlslave-bin.log
+sync_binlog=1
+innodb_buffer_pool_size=512M
+innodb_flush_log_at_trx_commit=1
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+lower_case_table_names=1
+log_bin_trust_function_creators=1
+datadir=/data/mysql
+:wq
+
+在主数据库和从数据库服务器上分别执行以下命令重新启动主数据库和从数据库
+# service mysqld restart
+# service mysqld restart
+
+在主数据库上创建用于主从复制的账户
+mysql -uroot -p
+mysql> GRANT REPLICATION SLAVE ON *.* TO 'repl'@'192.168.5.182' IDENTIFIED BY 'repl4321';
+mysql> flush privileges;
+
+主数据库锁表(禁止再插入数据以获取主数据库的的二进制日志坐标)
+mysql> flush tables with read lock;
+
+查看主数据库的状态(并记录下File字段和Position字段的值，在配置从服务器时有用到)
+mysql> show master status\G
+File: mysqlmaster-bin.000002
+         Position: 619
+
+exit
+		 
+创建主数据库的快照文件
+cd /tmp/
+mysqldump -uroot -p --all-databases --triggers --routines --events >> /tmp/all.sql
+
+解锁主数据库的锁表操作
+mysql> unlock tables;
+
+在从数据库服务器上导入第七步创建的快照文件到从数据库中
+scp all.sql root@192.168.5.182:/tmp/
+mysql -uroot -p  < /tmp/all.sql
+
+在从数据库服务器上设置主数据库服务器向从数据库服务器同步
+mysql> change master to master_host = '192.168.5.181',master_user='repl',master_password='repl4321',master_log_file='mysqlmaster-bin.000001',master_log_pos=399;
+
+启动从数据库复制线程
+mysql> start slave;
+
+查询从数据库的复制线程状态
+mysql> show slave status \G
+
+如果Slave_IO_Running和Slave_SQL_Running两项都为yes，就表示主从复制配置成功了.
+
+下面可以开始测试配置是否成功了，首先在主数据库的test数据库中新建一张表，然后插入几条数据，然后到从数据库看看是否同步过来了。
+
+注意：当从数据库有大量的查询时，可以暂时将从数据库的复制线程关闭掉，等查询量降下来了，再打开，这样也不会丢失数据。
+
+
+#优化后的主从配置（待验证）
+#master
+[client]
+port=3306
+socket=/data/mysql/mysql.sock
+default-character-set=utf8
+
+[mysqld]
+sync_binlog=1
+server-id=1
+port=3306
+socket=/data/mysql/mysql.sock
+pid-file=/data/mysql/localhost.localdomain.pid
+user=mysql
+datadir=/data/mysql
+tmpdir=/tmp
+log-bin=/data/mysql/mysqlmaster-bin
+log-error=/data/mysql/logs/error.log
+slow_query_log_file=/data/mysql/logs/slow.log
+binlog_format=mixed
+slow_query_log
+long_query_time=10
+wait_timeout=31536000
+interactive_timeout=31536000
+max_connections=500
+max_user_connections=490
+max_connect_errors=2
+character_set_server=utf8
+skip-external-locking
+key_buffer_size = 128M
+max_allowed_packet = 5M
+table_open_cache = 512
+sort_buffer_size = 2M
+read_buffer_size = 2M
+read_rnd_buffer_size = 8M
+myisam_sort_buffer_size = 64M
+thread_cache_size = 8
+query_cache_size = 32M
+
+# Try number of CPU's*2 for thread_concurrency
+thread_concurrency = 4
+binlog-ignore-db=mysql
+binlog-ignore-db=information_schema
+replicate_ignore_db=mysql
+replicate_ignore_db=information_schema
+expire-logs-days=10
+skip-slave-start
+skip-name-resolve
+lower_case_table_names=1
+log_bin_trust_function_creators=1
+
+# InnoDB
+innodb_data_home_dir=/data/mysql/
+innodb_log_group_home_dir=/data/mysql/logs
+innodb_data_file_path=ibdata1:128M:autoextend
+innodb_buffer_pool_size=2G
+innodb_log_file_size=10M
+innodb_log_buffer_size=8M
+innodb_lock_wait_timeout=50
+innodb_file_per_table
+innodb_flush_log_at_trx_commit=1
+
+#sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
+#slave 
+vi /etc/my.cnf
+[client]
+port=3306
+socket=/data/mysql/mysql.sock
+default-character-set=utf8
+
+[mysqld]
+sync_binlog=1
+server-id=2
+port=3306
+socket=/data/mysql/mysql.sock
+pid-file=/data/mysql/localhost.localdomain.pid
+user=mysql
+datadir=/data/mysql
+tmpdir=/tmp/
+log-bin=/data/mysql/mysqlslave-bin
+log-error=/data/mysql/logs/error.log
+slow_query_log_file=/data/mysql/logs/slow.log
+binlog_format=mixed
+slow_query_log
+long_query_time=10
+wait_timeout=31536000
+interactive_timeout=31536000
+max_connections=500
+max_user_connections=490
+max_connect_errors=2
+character_set_server=utf8
+skip-external-locking
+key_buffer_size = 128M
+max_allowed_packet = 5M
+table_open_cache = 512
+sort_buffer_size = 2M
+read_buffer_size = 2M
+read_rnd_buffer_size = 8M
+myisam_sort_buffer_size = 64M
+thread_cache_size = 8
+query_cache_size = 32M
+
+# Try number of CPU's*2 for thread_concurrency
+thread_concurrency = 4
+binlog-ignore-db=mysql
+binlog-ignore-db=information_schema
+replicate_ignore_db=mysql
+replicate_ignore_db=information_schema
+expire-logs-days=10
+#skip-slave-start
+skip-name-resolve
+lower_case_table_names=1
+log_bin_trust_function_creators=1
+
+# InnoDB
+innodb_data_home_dir=/data/mysql
+innodb_log_group_home_dir=/data/mysql/logs
+innodb_data_file_path=ibdata1:128M:autoextend
+innodb_buffer_pool_size=2G
+innodb_log_file_size=10M
+innodb_log_buffer_size=8M
+innodb_lock_wait_timeout=50
+innodb_file_per_table
+innodb_flush_log_at_trx_commit=1
+
+#sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+sql_mode=STRICT_TRANS_TABLES,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION,NO_AUTO_VALUE_ON_ZERO
+
+[mysqldump]
+quick
+max_allowed_packet = 16M
+
+[mysql]
+no-auto-rehash
+
+[myisamchk]
+key_buffer_size = 256K
+sort_buffer_size = 256K
+read_buffer = 256K
+write_buffer = 256K
+ 
+[mysqlhotcopy]
+interactive-timeout
+

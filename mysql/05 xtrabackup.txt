@@ -1,0 +1,93 @@
+Percona Xtrabackup的安装及使用
+
+yum -y install perl perl-devel libaio libaio-devel perl-Time-HiRes perl-DBD-MySQL
+wget https://www.percona.com/downloads/XtraBackup/Percona-XtraBackup-2.2.12/binary/redhat/6/x86_64/percona-xtrabackup-2.2.12-1.el6.x86_64.rpm
+rpm -ivh percona-xtrabackup-2.2.12-1.el6.x86_64.rpm
+
+完全备份
+innobackupex --user=root --password=123456 --host=127.0.0.1 /tmp/backup --no-timestamp
+
+完全恢复
+innobackupex --user=root --password=123456 --host=127.0.0.1 --apply-log --use-memory=2G /path/to/BACKUP-DIR
+
+innobackupex --user=root --password=123456 --host=127.0.0.1 --copy-back /path/to/BACKUP-DIR
+ 
+Warning: Using unique option prefix open_files instead of open_files_limit is deprecated and will be removed in a future release. Please use the full name instead.
+innobackupex: Created backup directory /data/backup/2014-06-30_09-14-48
+ 
+140630 09:14:48  innobackupex: Starting ibbackup with command: xtrabackup  --defaults-group="mysqld" --backup --suspend-at-end --target-dir=/data/backup/2014-06-30_09-14-48 --tmpdir=/tmp --extra-lsndir='/tmp'
+innobackupex: Waiting for ibbackup (pid=3844) to suspend
+innobackupex: Suspend file '/data/backup/2014-06-30_09-14-48/xtrabackup_suspended_2'
+ 
+Warning: Using unique option prefix open_files instead of open_files_limit is deprecated and will be removed in a future release. Please use the full name instead.
+xtrabackup version 2.2.3 based on MySQL server 5.6.17 Linux (x86_64) (revision id: )
+xtrabackup: uses posix_fadvise().
+xtrabackup: cd to
+xtrabackup: open files limit requested 65535, set to 65535
+xtrabackup: using the following InnoDB configuration:
+xtrabackup:   innodb_data_home_dir = ./
+xtrabackup:   innodb_data_file_path = ibdata1:10M:autoextend
+xtrabackup:   innodb_log_group_home_dir = ./
+xtrabackup:   innodb_log_files_in_group = 2
+xtrabackup:   innodb_log_file_size = 50331648
+2014-06-30 09:14:48 7f0abfdd0720  InnoDB: Operating system error number 2 in a file operation.
+InnoDB: The error means the system cannot find the path specified.
+InnoDB: File ./ib_logfile0: 'open' returned OS error 71. Cannot continue operation
+innobackupex: Error: The xtrabackup child process has died at /usr/bin/innobackupex line 2672.
+从以上可以看出备份失败，出现文件不能打开错误，因为是编译安装，innobackupex未带参数默认寻找/etc/my.cnf配置文件，/etc/my.cnf文件未指定basedir及datadir
+在[mysqld]下面增加
+1
+2
+basedir = /data/mysql
+datadir = /data/mysql/data
+再重新进行备份，备份成功。(basedir就是mysql安装所在的目录,datadir是数据文件所在的目录)
+1
+5
+[root@Web1 ~]# innobackupex --user=root --password=123456 /data/backup
+innobackupex: Backup created in directory '/data/backup/2014-06-30_11-33-24'
+innobackupex: MySQL binlog position: filename 'mysql-bin.000003', position 312
+140630 09:51:59  innobackupex: Connection to database server closed
+140630 09:51:59  innobackupex: completed OK!
+但是一般情况下，这个备份是不能用于恢复的，因为备份的数据中可能会包含尚未提交的事务或已经提交但尚未同步至数据文件中的事务。因此，此时数据文件处于不一致的状态，我们现在就是要通过回滚未提交的事务及同步已经提交的事务至数据文件也使得数据文件处于一致性状态。
+1
+ [root@Web1 ~]# innobackupex --apply-log /data/backup/2014-06-30_11-33-24
+从上面可以看出，只是对innobackupex加--apply-log参数应用日志，然后加上备份的目录
+
+2.完全恢复数据
+先停止mysqld服务，然后清空数据文件目录，恢复完成后再设置权限
+1
+2
+[root@Web1 ~]# service mysqld stop
+[root@Web1 ~]# mv /data/mysql/data /data/mysql/data_old
+[root@Web1 ~]# mkdir -p /data/mysql/data
+[root@Web1 ~]# innobackupex --copy-back /data/backup/2014-06-30_11-33-24
+[root@Web1 ~]# chown -R mysql.mysql /data/mysql/data
+[root@Web1 ~]# service mysqld start
+innobackup的--copy-back选项用于执行恢复操作，它是通过复制所有数据相关文件至MySQL数据目录，因此，需要清空数据目录。我这里是将其重命名，然后再重建目录。最主要一步是将其权限更改
+
+3.增量备份
+1
+[root@Web1 ~]# innobackupex --user=root --password=123456 --incremental /data/backup --incremental-basedir=/data/backup/2014-06-30_11-33-24
+其中，--incremental-basedir指的是完全备份所在的目录，此命令执行结束后，innobackupex命令会在/data/backup目录中创建一个新的以时间命名的目录以存放所有的增量备份数据。另外，在执行过增量备份之后再一次进行增量备份时，其--incremental-basedir应该指向上一次的增量备份所在的目录。
+
+需要注意的是，增量备份仅能应用于InnoDB或XtraDB表，对于MyISAM表而言，执行增量备份时其实进行的是完全备份。
+增量备份，如果需要恢复的话需要做如下操作
+1
+2
+[root@Web1 ~]# innobackupex --apply-log --redo-only /data/backup/2014-06-30_11-33-24
+[root@Web1 ~]# innobackupex --apply-log --redo-only /data/backup/2014-06-30_11-33-24 --incremental-dir=/data/backup/2014-06-30_13-06-25
+如果存在多次增量备份的话，就需要多次执行.如
+1
+2
+3
+innobackupex --apply-log --redo-only BACKUPDIR 
+innobackupex --apply-log --redo-only BACKUPDIR --incremental-dir=INCREMENTDIR-1
+innobackupex --apply-log --redo-only BACKUPDIR --incremental-dir=INCREMENTDIR-2
+BACKUP是全备目录，INCREMENTDIR是增量备份目录，上面是有2次增量备份，如果存在多次增量备份，则需要多次运行如上的命令
+
+4.Xtrabackup的备份压缩
+Xtrabackup对备份的数据文件支持“流”功能，即可以将备份的数据通过STDOUT传输给tar程序进行归档，而不是默认的直接保存至某备份目录中。要使用此功能，仅需要使用--stream选项即可。如：
+1
+innobackupex --user=root --password=123456 --stream=tar  /data/backup | gzip > /data/backup/`date +%F_%H-%M-%S`.tar.gz
+
+本文出自 “枫林晚” 博客，请务必保留此出处http://fengwan.blog.51cto.com/508652/1432347

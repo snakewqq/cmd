@@ -1,0 +1,92 @@
+
+[client]
+port		= 3306
+socket		= /var/run/mysqld/mysqld.sock
+
+[mysqld_multi]
+mysqld     = /usr/local/mysql/bin/mysqld_safe
+mysqladmin = /usr/local/mysql/bin/mysqladmin
+user       = root
+
+
+[mysqld36]
+server-id =36
+user            = mysql
+pid-file        = /var/run/mysqld/mysqld.pid
+socket          = /var/run/mysqld/mysqld.sock
+port            = 3306
+datadir         = /usr/local/mysql/data3306
+tmpdir          = /tmp/mysql3306
+lc-messages-dir = /usr/local/mysql/share
+log-error = /var/log/mysql/error3306.log
+log_bin = /var/log/mysql/mysql-bin.log
+default-storage-engine = InnoDB
+lower_case_table_names  = 1
+character-set-server = utf8
+
+innodb_file_per_table
+innodb_data_home_dir = /usr/local/mysql/data3306
+
+innodb_buffer_pool_size = 6G
+innodb_additional_mem_pool_size = 50M
+innodb_log_buffer_size = 8M
+query_cache_limit = 4M
+query_cache_size = 256M
+key_buffer = 100M
+key_buffer_size= 1G
+read_buffer_size=10M
+
+thread_cache_size = 64
+#innodb_flush_log_trx_commit = 1
+innodb_log_file_size = 640M
+max_allowed_packet = 16M
+thread_stack = 192K
+table_open_cache       = 2000
+
+# Master/Slave
+rpl_semi_sync_master_enabled=1
+rpl_semi_sync_master_timeout=1000
+rpl_semi_sync_slave_enabled=1
+read_only=1
+
+[mysqld37]
+server-id =37
+user            = mysql
+pid-file        = /var/run/mysqld/mysqld3307.pid
+socket          = /var/run/mysqld/mysqld3307.sock
+port            = 3307
+datadir         = /usr/local/mysql/data3307
+tmpdir          = /tmp/mysql3307
+lc-messages-dir = /usr/local/mysql/share
+log-error = /var/log/mysql/error3307.log
+log_bin = /var/log/mysql/mysql3307-bin.log
+default-storage-engine = InnoDB
+lower_case_table_names  = 1
+character-set-server = utf8
+
+innodb_file_per_table
+innodb_data_home_dir = /usr/local/mysql/data3307
+
+innodb_buffer_pool_size = 6G
+innodb_additional_mem_pool_size = 50M
+innodb_log_buffer_size = 8M
+query_cache_limit = 4M
+query_cache_size = 256M
+key_buffer = 100M
+key_buffer_size= 1G
+read_buffer_size=10M
+
+thread_cache_size = 64
+#innodb_flush_log_trx_commit = 1
+innodb_log_file_size = 640M
+max_allowed_packet = 16M
+thread_stack = 192K
+table_open_cache       = 2000
+
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet	= 16M
+
+

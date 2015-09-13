@@ -69,7 +69,40 @@ innodb_flush_log_at_trx_commit=1
 lower_case_table_names=1
 log_bin_trust_function_creators=1
 
+default-storage-engine = InnoDB
+character-set-server = utf8
+innodb_file_per_table
+
+symbolic-links = 0
+skip-external-locking
+init_connect = 'SET NAMES utf8'
+back_log = 500
+wait_timeout = 1800
+interactive_timeout = 1800
+max_connections = 2000
+max_user_connections = 800
+innodb_buffer_pool_size = 16G
+key_buffer_size = 16G
+#innodb_additional_mem_pool_size = 50M
+innodb_log_buffer_size = 8M
+query_cache_type  = 1
+query_cache_limit = 4M
+query_cache_size = 256M
+thread_cache_size = 64
+
+innodb_flush_log_at_trx_commit = 0
+innodb_log_file_size = 640M
+max_allowed_packet = 16M
+thread_stack = 192K
+read_buffer_size = 1M
+read_rnd_buffer_size = 2M
+sort_buffer_size = 64M
+join_buffer_size = 64M
+tmp_table_size = 64M
+table_open_cache       = 2000
+
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
 :wq
 
 #mysql slave config
@@ -83,6 +116,39 @@ innodb_flush_log_at_trx_commit=1
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 lower_case_table_names=1
 log_bin_trust_function_creators=1
+
+default-storage-engine = InnoDB
+character-set-server = utf8
+innodb_file_per_table
+
+symbolic-links = 0
+skip-external-locking
+init_connect = 'SET NAMES utf8'
+back_log = 500
+wait_timeout = 1800
+interactive_timeout = 1800
+max_connections = 2000
+max_user_connections = 800
+innodb_buffer_pool_size = 16G
+key_buffer_size = 16G
+#innodb_additional_mem_pool_size = 50M
+innodb_log_buffer_size = 8M
+query_cache_type  = 1
+query_cache_limit = 4M
+query_cache_size = 256M
+thread_cache_size = 64
+
+innodb_flush_log_at_trx_commit = 0
+innodb_log_file_size = 640M
+max_allowed_packet = 16M
+thread_stack = 192K
+read_buffer_size = 1M
+read_rnd_buffer_size = 2M
+sort_buffer_size = 64M
+join_buffer_size = 64M
+tmp_table_size = 64M
+table_open_cache       = 2000
+
 :wq
 
 在主数据库和从数据库服务器上分别执行以下命令重新启动主数据库和从数据库

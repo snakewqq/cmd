@@ -1,0 +1,36 @@
+192.168.5.133 mount 241 nginx log
+mount -t nfs 192.168.5.241:/var/log   /home/capvision/dblog/
+
+192.168.5.241
+nginx
+db.capvision.com
+db.capvision.com.cn
+
+mysql
+ndb
+
+192.168.5.241、240、243
+/etc/nginx/sites-available
+
+192.168.5.241
+手工mount
+sudo mount -t nfs -o soft,bg,rsize=32768,wsize=32768,noexec,rw,nodev,nosuid,tcp 192.168.5.40:/share/sharemsg /usr/share/nginx/www/call_manager_log
+sudo mount -t nfs -o soft,bg,rsize=32768,wsize=32768,noexec,rw,nodev,nosuid,tcp 192.168.5.40:/share/sharefs  /usr/share/nginx/www/ndb/files
+sudo mount -t nfs -o soft,bg,rsize=32768,wsize=32768,noexec,rw,nodev,nosuid,tcp 192.168.5.40:/share/sharemailbox /usr/share/nginx/www/mailbox
+Microsoft Windows [版本 6.1.7601]
+版权所有 (c) 2009 Microsoft Corporation。保留所有权利。
+
+C:\Users\wesley>ping www.iksh.com
+
+正在 Ping www.iksh.com [121.199.13.186] 具有 32 字节的数据:
+来自 121.199.13.186 的回复: 字节=32 时间=34ms TTL=49
+来自 121.199.13.186 的回复: 字节=32 时间=37ms TTL=49
+来自 121.199.13.186 的回复: 字节=32 时间=35ms TTL=49
+来自 121.199.13.186 的回复: 字节=32 时间=34ms TTL=49
+
+121.199.13.186 的 Ping 统计信息:
+    数据包: 已发送 = 4，已接收 = 4，丢失 = 0 (0% 丢失)，
+往返行程的估计时间(以毫秒为单位):
+    最短 = 34ms，最长 = 37ms，平均 = 35ms
+
+C:\Users\wesley>

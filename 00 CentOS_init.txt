@@ -1,0 +1,78 @@
+
+配置网卡
+如果虚拟机复制后，选择“I copied it.”选项后，需要做如下修正网卡配置，才能启动网卡：
+# vi /etc/udev/rules.d/70-persistent-net.rules 
+SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="00:0c:29:66:3f:1f", ATTR{type}=="1", KERNEL=="eth*", NAME="eth0" 
+:wq
+将原eth0配置删除，将eth1改为eth0，同时记录下MAC地址：00:0c:29:66:3f:1f备用。
+
+# vi /etc/sysconfig/network-scripts/ifcfg-eth0 
+DEVICE="eth0"
+BOOTPROTO="static"
+GATEWAY="192.168.203.2"
+NETMASK="255.255.255.0"
+IPADDR="192.168.203.80"
+DNS1="192.168.203.2"
+DNS2="8.8.8.8"
+NM_CONTROLLED="yes"
+ONBOOT=yes
+TYPE="Ethernet"
+DEFROUTE=yes
+IPV4_FAILURE_FATAL=yes
+IPV6INIT=no
+IPV6_AUTOCONF=no
+NAME="System eth0"
+HWADDR=00:0C:29:66:3F:1F
+PEERDNS=yes
+PEERROUTES=yes
+:wq 
+# service network restart 
+
+配置hostname
+# vi /etc/sysconfig/network
+HOSTNAME=localhost
+:wq
+
+禁用selinux
+# vi /etc/sysconfig/selinux
+SELINUX=disabled
+#SELINUXTYPE=targeted
+:wq
+# reboot
+
+使用Secure CRT远程连接
+
+配置yum源
+# cd /etc/yum.repos.d/
+# mv CentOS-Base.repo CentOS-Base.repo.bak
+# mv CentOS-Debuginfo.repo CentOS-Debuginfo.repo.bak
+# mv CentOS-Media.repo CentOS-Media.repo.bak
+# mv CentOS-Vault.repo CentOS-Vault.repo.bak
+# 本地上传CentOS-Base.repo
+# yum clean all
+# yum makecache
+# yum info gcc
+
+安装常用命令
+# yum -y install wget traceroute bind-utils telnet net-snmp man ntpdate openssh-clients tree zip unzip mlocate openssl-devel
+
+修改服务器时间
+# ntpdate time.nist.gov
+# date
+# 写入bios
+# hwclock -w
+
+# 定时校正服务器时钟，定时与中国国家授时中心授时服务器同步
+# crontab -e
+# 加入一行：
+*/30 * * * * ntpdate time.nist.gov > /dev/null 2>&1
+:wq
+
+# useradd wesley
+# chmod 740 /etc/sudoers
+# vi /etc/sudoers
+/root    ALL=(ALL)       ALL
+wesley ALL=(ALL)       ALL
+:wq
+# chmod 440 /etc/sudoers
+# su wesley

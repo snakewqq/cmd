@@ -1,0 +1,72 @@
+本地上传elasticsearch-1.7.1.tar.gz
+cd /tmp
+tar zxvf elasticsearch-1.7.1.tar.gz
+mv elasticsearch-1.7.1 /usr/local/elasticsearch
+
+增加es内存
+vi /etc/profile
+ES_HEAP_SIZE=4g
+export ES_HEAP_SIZE
+:wq
+source /etc/profile
+echo $ES_HEAP_SIZE
+
+开启防火墙
+vi /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 9200 -j ACCEPT
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 9300 -j ACCEPT
+:wq
+service iptables restart
+
+配置参数
+vi /usr/local/elasticsearch/config/elasticsearch.yml
+cluster.name: wesley_test_cluster
+node.name: "wesley_test_node_1"
+bootstrap.mlockall: true
+:wq
+
+修改最大文件打开数
+ulimit -a
+vi /etc/security/limits.conf
+*　　soft　　nofile　　65536
+*　　hard　　nofile　　65536
+:wq
+exit
+ulimit -a
+
+安装插件
+cd /usr/local/elasticsearch/bin
+./plugin -install mobz/elasticsearch-head
+http://localhost:9200/_plugin/head/
+
+后台启动es
+cd /usr/local/elasticsearch/bin
+./elasticsearch -d
+
+查看状态
+curl http://localhost:9200/_nodes/process?pretty
+
+安全组件
+vi /usr/local/elasticsearch
+1.安装license
+bin/plugin -i elasticsearch/license/latest
+2. 安装shield
+bin/plugin -i elasticsearch/shield/latest
+3. Start Elasticsearch
+bin/elasticsearch -d
+尝试无授权访问：
+curl -XGET 'http://localhost:9200/'
+4. 创建管理员
+bin/shield/esusers useradd es_admin -r admin
+new passwd:es_admin_4321
+修改用户密码：
+bin/shield/esusers passwd es_admin
+尝试授权访问：
+curl -u es_admin -XGET 'http://localhost:9200/'
+curl -u es_admin:es_admin_4321 -XGET 'http://localhost:9200/'
+
+
+
+
+
+

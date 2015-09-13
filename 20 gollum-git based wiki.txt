@@ -1,0 +1,133 @@
+gollum 是一个可以使用markdown来写作的wiki，在安装过程中，记录一下。
+
+gollum介绍
+
+特点有以下几个方面：
+* lightweight
+* use Markdown
+* web-based
+* Can be easily stored in Git
+github地址为Gollum,It’s a Sinatra based application. It supports, amongst others, Markdown. Evertime you make a change, it commits it in a local git repository. Also, the nice folks at Github open sourced it.
+
+gollum安装
+
+#yum -y install ruby ruby-devel rubygems make gcc libxml2-devel libxslt-devel git libicu-devel
+由于默认使用的ruby版本太低，我们需要安装高版本的ruby，使用rvm来安装。
+首先我们需要安装rvm
+
+#curl -sSL https://get.rvm.io | bash
+待rvm安装成功之后，安装高版本的ruby，我安装的是2.2.0
+
+#使rvm生效
+#source /etc/profile.d/rvm.sh
+#rvm --version
+
+#rvm install 2.2.0
+安装2.2.0版本的ruby之后，需要把ruby 2.2.0设为默认的ruby版本
+
+#rvm use 2.2.0 --default
+接下来安装gollum和redcarpet(用来解析markdown语法)
+
+切换gem源
+$ gem sources --remove https://rubygems.org/
+$ gem sources -a https://ruby.taobao.org/
+$ gem sources -l
+*** CURRENT SOURCES ***
+
+https://ruby.taobao.org
+# 请确保只有 ruby.taobao.org
+
+修改 RVM ，改用本站作为下载源, 提高安装速度。
+FOR LINUX
+sed -i 's!cache.ruby-lang.org/pub/ruby!ruby.taobao.org/mirrors/ruby!' $rvm_path/config/db
+
+#gem install gollum redcarpet
+#gem install github-markdown
+#gem install unicorn
+
+#vi /data/wiki/config.ru
+#!/usr/bin/env ruby
+require 'rubygems'
+require 'gollum/app'
+
+gollum_path = File.expand_path('/var/lib/gollum/wiki') # CHANGE THIS TO POINT TO YOUR OWN WIKI REPO
+Precious::App.set(:gollum_path, gollum_path)
+Precious::App.set(:default_markup, :markdown) # set your favorite markup language
+Precious::App.set(:wiki_options, {:universal_toc => false})
+run Precious::App
+:wq
+
+#useradd -d /var/lib/gollum -m -U -s /bin/bash gollum
+# su - gollum
+# vi /data/wiki/unicorn.conf
+# unicron.conf  
+worker_processes  2  
+working_directory '/var/lib/gollum'  
+listen 4567, :tcp_nopush => true                 
+timeout 10  
+pid '/var/lib/gollum/gollum.pid'                          
+preload_app  true  
+stderr_path '/var/lib/gollum/unicorn/unicorn.log'  
+  
+before_fork do |server, worker|  
+  old_pid = "#{server.config[:pid]}.oldbin"  
+  if old_pid != server.pid  
+    begin  
+      sig = (worker.nr + 1) >= server.worker_processes ? :QUIT : :TTOU  
+      Process.kill(sig, File.read(old_pid).to_i)  
+    rescue Errno::ENOENT, Errno::ESRCH  
+    end  
+  end  
+  
+  sleep 1  
+end  
+  
+after_fork do |server, worker|  
+  addr = "127.0.0.1:#{4567 + worker.nr}"  
+  server.listen(addr, :tries => -1, :delay => 5, :tcp_nopush => 1)  
+end  
+:wq
+
+配置nginx
+upstream unicorn {
+        server unix:/var/lib/gollum/unicorn/wiki.sock;
+   }
+ 
+server {
+    listen 80;
+    server_name wiki;
+    access_log  /var/lib/gollum/nginx/wiki_access.log;
+    error_log  /var/lib/gollum/nginx/wiki_error.log;
+ 
+ 
+    location / {
+        proxy_pass http://unicorn;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+  }
+
+接下来，我们创建开始创建wiki
+
+# mkdir wiki
+# cd wiki
+# git init
+# gollum
+这样已经搭建成功了gollum，gollum默认在4567端口，所以访问http://url:4567即可。
+
+效果如图：
+主界面
+
+注意事项
+
+gollum必须在wiki这个目录下执行，如果你在别的路径下执行gollum会报错，所以为了方便期间，可以自己写脚本来启动。
+比如将下列保存为markdown_wiki
+
+#!/usr/bin/env bash
+gollum /root/wiki                
+以后执行markdown_wiki即可。
+
+我们需要将这个进程后台执行
+
+nohup markdown_wiki

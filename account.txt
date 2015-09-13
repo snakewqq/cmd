@@ -1,0 +1,28 @@
+QA
+
+192.168.5.26
+capvision abcd1234
+root abc@123
+qa.ndb.capvision.com
+qa1.ndb.capvision.com
+
+192.168.5.73
+win7
+administrator 1234
+
+192.168.5.59
+capvision 654321
+
+
+111111
+1234
+123456
+abc@123
+654321
+C@pvisi0n
+
+192.168.5.70
+capvision 1q2w3e4r
+
+
+

@@ -1,0 +1,273 @@
+3 Git服务器搭建
+1. 环境部署
+系统环境：服务器端：CentOS 6.5 ，ip：192.168.5.162
+               客户端：CentOS 6.5 ，ip：192.168.5.163
+软件版本：服务器端：源码编译安装，git-1.9.0.tar.gz
+               客户端：yum在线安装机制
+
+2. 安装
+2.1 服务器端：
+# yum -y install curl-devel expat-devel gettext-devel openssl-devel zlib-devel perl-devel
+
+yum -y install python python-setuptools
+
+# 本地上传git-1.9.5.tar.gz
+
+# tar zxvf git-1.9.5.tar.gz
+# cd git-1.9.5
+
+#root用户运行
+# make prefix=/usr/local all
+# make prefix=/usr/local install  
+查看版本号：git --version
+git version 1.9.5
+
+安装gitosis：gitosis为Git用户权限管理系统,通过管理服务端的/home/git/.ssh/authorized_key文件来执行对用户权限的管理，是一个python模块包
+cd /tmp
+# git clone git://github.com/res0nat0r/gitosis.git
+# cd gitosis/
+# python setup.py install
+显示Finished processing dependencies for gitosis==0.2即表示成功 
+
+2.2 客户端安装：
+# yum -y install git
+# git --version
+git version 1.7.1
+
+3. ssh设置
+客户端生产密钥并上传到服务器端：
+# ssh-keygen -t rsa
+# scp /root/.ssh/id_rsa.pub root@192.168.5.162:/tmp
+服务端查看已经上传的密钥：
+# ls /tmp/id_rsa.pub
+# mv /tmp/id_rsa.pub /tmp/admin.pub
+chmod 777 -R /tmp
+
+4. 服务器上生成git用户，使用git用户并初始化gitosis
+添加用户git：
+# useradd -r -s /bin/sh -c 'git version control' -d /home/git git
+设置权限：
+# mkdir -p /home/git
+# chown git:git /home/git
+
+在服务器端生成管理库：
+# cd /home/git
+# su git
+# gitosis-init < /tmp/admin.pub
+Initialized empty Git repository in /home/git//repositories/gitosis-admin.git/ Reinitialized existing 
+Git repository in /home/git/repositories/gitosis-admin.git/ 
+
+注解：
+1. 生成的gitosis-admin为Git的用户访问权限管理库，gitosis通过这个git库来管理所有git库的访问权限。
+2. 通过执行初始化，该公钥的拥有者就能修改用于配置gitosis的那个特殊Git仓库了
+
+修改上传权限：
+# chmod 755 /home/git/repositories/gitosis-admin.git/hooks/post-update
+
+5. 客户端导出管理
+# cd /tmp
+# git clone git@192.168.5.162:gitosis-admin.git
+# cd gitosis-admin
+
+# find .
+./gitosis.conf
+./keydir
+./keydir/oot@vm1.pub
+
+注解：
+gitosis.conf文件用来设置用户、仓库和权限的控制文件
+keydir目录则是保存所有具有访问权限用户公钥的地方
+./keydir/root@vm1.pub:如前所述，该用户具有访问权限
+
+6. 客户端创建及设置管理项目
+# cd /tmp/gitosis-admin
+
+查看已经上传密钥
+# ls keydir/
+root@vm1.pub
+
+授权和权限控制
+# vi gitosis.conf
+[gitosis]
+
+[group gitosis-admin]
+writable = gitosis-admin
+members = root@vm1        #显示用户root@vm1.pub是初始化gitosis公钥的拥有者，是唯一能管理gitosis-admin项目的人
+
+[group jay_fans]            #组名称
+members = root@vm1        #密钥用户名
+writable = git-test                #项目名称
+# git commit -a -m "add git-test"
+# git push origin master
+
+
+7. 初始、增加及使用项目git-test
+# cd /tmp
+# mkdir git-test
+# cd git-test
+# git init
+# touch README
+# git add .
+# git commit -a -m "init git-test"
+
+# git remote add origin git@192.168.5.162:git-test.git
+# git push origin master
+
+注解：在新项目git-test里首次推送数据到服务器前，需先设定该服务器地址为远程仓库，但你不用事先到服务器上手工创建该项目的裸仓库
+— Gitosis 会在第一次遇到推送时自动创建。
+
+8. 客户端增加其他成员公钥到系统中：通过添加用户的公钥到keydir目录即可
+# cd /tmp/gitosis-admin
+# cp /tmp/wesley.pub keydir/
+# git add keydir/wesley.pub
+
+修改gitosis.conf
+# vi gitosis.conf
+[group jay_fans]            #组名称
+members = wesley jay              #新的密钥用户名
+writable = git-test     
+
+提交修改：
+# git commit -a -m "granted wesley commit rights to git-test"
+# git push
+注解：gitosis实际上是从服务器端的/home/git/.gitosis.conf文件读取信息的，通过以上操作，会将新的权限信息写入到该文件中，如果搞错了
+配置，导致失去了推送权限，可以通过修改该文件来重新设定，如果你手工编辑该文件的话，它会一直保持到下次向 gitosis-admin 推送新版本的配置内容为止。
+
+成员wesley通过以下命令获取代码：
+# git clone git@192.168.5.162:git-test.git
+
+4 Github的使用
+GitHub是一个托管Git项目的网站，对于闭源项目收费，开源项目则免费。使用Github进行代码发布和托管的步骤如下：
+
+1. 登录Github官网https://github.com/ ,申请Github账户，并创建名为github-test的Repository
+
+2. 安装Git客户端（Linux）
+#yum install git git-gui
+
+3. 生成密钥对，并拷贝到Github网站
+#ssh-keygen -t rsa -C “xxx@gmail.com”
+xxx@gmail.com为你注册Github时的邮箱账户
+
+登录Github点击Edit your profile->SSH keys,添加./.ssh/id_rsa.pub中的内容
+
+4. 设置ssh不输入口令
+#eval `ssh-agent`
+#ssh-add
+
+5. 测试是否能连接上GIthub
+
+#ssh git@github.com
+PTY allocation request failed on channel 0
+Hi rangochan! You've successfully authenticated, but GitHub does not provide shell access.
+         Connection to github.com closed.
+
+连接成功
+
+6. 配置Git全局用户配置
+# git config --global user.name xxx
+# git config --global user.email xxx@gmail.com
+xxx及xxx@gmail.com分别为Github账户名和邮箱
+
+7. 创建本地新项目
+#mkdir github-test
+#cd github-test/
+#git init
+#touch README
+#git add README
+#git commit -m 'my first commit'
+
+定义远程服务器别名origin
+#git remote add origin git@github.com:xxx/github-test.git
+
+本地和远程实行合并，本地默认为master
+#git push origin master
+当通过Github以xxx对github-test作出修改时，由于本地快照与Github远程服务器上的不一致，会引起以下错误：
+! [rejected]        master -> master (fetch first)
+error: failed to push some refs to 'git@github.com:xxx/puppet'
+hint: Updates were rejected because the remote contains work that you do
+hint: not have locally. This is usually caused by another repository pushing
+hint: to the same ref. You may want to first integrate the remote changes
+hint: (e.g., 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+解决：
+
+通过pull子命令更新Github项目中作出的更改
+
+#git pull origin master
+
+之后再执行git push origin master
+
+Counting objects: 8, done.
+Delta compression using up to 4 threads.
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (7/7), 714 bytes | 0 bytes/s, done.
+Total 7 (delta 0), reused 0 (delta 0)
+
+登录https://github.com/xxx/github-test ,可查看到github-test项目
+
+8. 更新文件
+#vim README
+just for test
+自动commit更改文件
+#git commit -a
+更新到远程
+#git push origin master
+
+9. 创建和合并分支
+#git branch 
+* master
+显示当前分支是master
+#git branch new-branch
+创建分支
+# git checkout new-branch 
+切换到新分支
+# vi check.py
+创建新文件
+# git add check.py
+# git commit -a -m "added a python script"
+Commit 到本地Git
+
+# git push origin new-feature
+合并到远程服务器
+
+如果new-branch分支成熟了，则可以合并进master
+#git checkout master
+#git merge new-branch
+#git branch
+
+* master
+ new-banch
+
+#git push 
+执行合并，master中也合并了new-branch中的更新
+登录到GitHub，点击"Switch Branches"可以更改分支来查看不同分支下代码情况。
+
+-------------------------------------------------------------------------------------------------------------
+
+如果你想从别的 Git 托管服务那里复制一份源代码到新的 Git 托管服务器上的话，可以通过以下步骤来操作。
+1). 从原地址克隆一份裸版本库，比如原本托管于 GitHub。
+
+git clone --bare git://192.168.5.26:old.git
+2). 然后到新的 Git 服务器上创建一个新项目，比如 GitCafe。
+
+3). 以镜像推送的方式上传代码到 GitCafe 服务器上。
+
+cd project.git
+
+git push --mirror git@192.168.5.242:old.git
+4). 删除本地代码
+
+cd ..
+
+rm -rf project.git
+5). 到新服务器 GitCafe 上找到 Clone 地址，直接 Clone 到本地就可以了。
+
+git clone git@gitcafe.com/username/newproject.git
+这种方式可以保留原版本库中的所有内容。
+
+切换到新地址
+git remote remove origin
+git remote add origin git@192.168.5.242:itdoc.git
+git pull origin master
+

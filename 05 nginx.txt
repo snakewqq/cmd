@@ -1,0 +1,201 @@
+# yum -y install make apr* autoconf automake curl-devel gcc gcc-c++ zlib-devel openssl openssl-devel pcre-devel gd kernel 
+# yum -y install keyutils patch perl kernel-headers compat* mpfr cpp glibc libgomp libstdc++-devel ppl cloog-ppl 
+# yum -y install keyutils-libs-devel libcom_err-devel libsepol-devel libselinux-devel krb5-devel zlib-devel libXpm* freetype 
+# yum -y install libjpeg* libpng* php-common php-gd ncurses* libtool* libxml2 libxml2-devel patch
+
+#本地上传nginx-1.4.6.tar.gz pcre-8.31.tar.gz
+
+#开始安装 Nginx
+#安装Nginx所需的pcre库
+# tar zxvf pcre-8.31.tar.gz
+# cd pcre-8.31
+# ./configure --prefix=/usr/local/pcre
+# make && make install clean
+# cd ..
+
+#安装 Nginx1.2.2
+# tar zxvf nginx-1.2.2.tar.gz
+# cd nginx-1.2.2
+# ./configure --user=www \
+--group=www \
+--prefix=/usr/local/nginx \
+--with-http_stub_status_module \
+--with-http_ssl_module \
+--with-pcre=/usr/software/pcre-8.31
+# make -j8 
+# make install clean
+# cd ..
+
+# chmod +w /usr/local/nginx/logs
+# chown -R www:www /usr/local/nginx/logs
+
+#创建 Nginx 配置文件
+# rm -f /usr/local/nginx/conf/nginx.conf
+# vi /usr/local/nginx/conf/nginx.conf
+user www www;
+worker_processes 8;
+
+error_log /usr/local/nginx/logs/error.log;
+pid /usr/local/nginx/nginx.pid;
+
+worker_rlimit_nofile 51200;
+events {
+        use epoll;
+        worker_connections 51200;
+}
+
+http {
+        include mime.types;
+        default_type application/octet-stream;
+
+        server_names_hash_bucket_size 128;
+        client_header_buffer_size 32k;
+        large_client_header_buffers 4 32k;
+        client_max_body_size 8m;
+
+        sendfile on;
+        tcp_nopush on;
+
+        keepalive_timeout 30;
+
+        tcp_nodelay on;
+
+        fastcgi_connect_timeout 300;
+        fastcgi_send_timeout 300;
+        fastcgi_read_timeout 300;
+        fastcgi_buffer_size 64k;
+        fastcgi_buffers 4 64k;
+        fastcgi_busy_buffers_size 128k;
+        fastcgi_temp_file_write_size 128k;
+
+        gzip on;
+        gzip_min_length 1k;
+        gzip_buffers 4 16k;
+        gzip_http_version 1.1;
+        gzip_comp_level 2;
+        gzip_types text/plain application/x-javascript text/css application/xml
+        gzip_vary on;
+
+        server {
+                listen 80;
+                server_name ccfs;
+                root /home/www/ccfs/backend/web;
+                index index.html index.htm index.php;
+
+                error_log /usr/local/nginx/logs/ccfs.log;
+                access_log /usr/local/nginx/logs/ccfs.log;
+
+                location / {
+                        # First attempt to serve request as file, then
+                        # as directory, then fall back to index.html
+                        try_files $uri $uri/ /index.html;
+                        # Uncomment to enable naxsi on this location
+                        # include /etc/nginx/naxsi.rules
+                        if (!-e $request_filename){
+                                rewrite (.*) /index.php last;
+                        }
+                }
+
+                location ~ \.php$ {
+                        fastcgi_pass 127.0.0.1:9000;
+                        fastcgi_index index.php;
+                        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                        include fastcgi_params;
+                }
+
+                location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$
+                {
+                        expires      30d;
+                }
+
+                location ~ .*\.(js|css)?$
+                {
+                        expires      12h;
+                }
+
+                location /nginx_status {
+                        stub_status on;
+                        access_log off;
+                }
+        }
+}
+
+
+:wq
+
+#创建 Nginx 开机启动脚本
+#vi /etc/init.d/nginx
+
+#加入以下内容
+#!/bin/bash
+#
+# chkconfig: - 85 15
+# description: Nginx is a World Wide Web server.
+# processname: nginx
+
+nginx=/usr/local/nginx/sbin/nginx
+conf=/usr/local/nginx/conf/nginx.conf
+
+case $1 in
+start)
+echo -n "Starting Nginx"
+$nginx -c $conf
+echo " done"
+;;
+
+stop)
+echo -n "Stopping Nginx"
+killall -9 nginx
+echo " done"
+;;
+
+test)
+$nginx -t -c $conf
+;;
+
+reload)
+echo -n "Reloading Nginx"
+ps auxww | grep nginx | grep master | awk '{print $2}' | xargs kill -HUP
+echo " done"
+;;
+
+restart)
+$0 stop
+$0 start
+;;
+
+show)
+ps -aux|grep nginx
+;;
+
+*)
+echo -n "Usage: $0 {start|restart|reload|stop|test|show}"
+;;
+
+esac
+:wq
+
+#为 nginx.sh 脚本设置可执行属性
+# chmod +x /etc/init.d/nginx
+
+# 添加 Nginx 为系统服务（开机自动启动）
+# chkconfig --add nginx
+# chkconfig nginx on
+# service nginx start
+
+# vi /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT 
+:wq
+# service iptables restart
+
+#在不停止 Nginx 服务的情况下平滑变更 Nginx 配置
+#修改 /usr/local/nginx/conf/nginx.conf 配置文件后，请执行以下命令检查配置文件是否正确：
+# service nginx test
+#如果屏幕显示以下两行信息，说明配置文件正确：
+the configuration file /usr/local/nginx/conf/nginx.conf syntax is ok
+the configuration file /usr/local/nginx/conf/nginx.conf was tested successfully
+
+#平滑变更 Nginx 配置
+# service nginx reload
+
+#nginx安装成功

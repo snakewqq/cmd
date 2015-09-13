@@ -1,0 +1,40 @@
+修改最大文件打开数
+ulimit -a
+vi /etc/security/limits.conf
+*　　soft　　nofile　　65536
+*　　hard　　nofile　　65536
+:wq
+exit
+ulimit -a
+
+关闭不必要的服务
+# chkconfig --list |grep '3:on'
+
+邮件服务，使用公司邮件服务器：
+service postfix stop
+chkconfig postfix --level 2345 off
+
+通用unix打印服务，对服务器无用：
+service cups stop
+chkconfig cups --level 2345 off
+
+调节cpu速度用来省电，常用在Laptop上：
+service cpuspeed stop
+chkconfig cpuspeed --level 2345 off
+
+蓝牙无线通讯，对服务器无用：
+service bluetooth stop
+chkconfig bluetooth --level 2345 off
+
+系统安装后初始设定，第一次启动系统后就没用了：
+service firstboot stop
+chkconfig firstboot --level 2345 off
+
+关闭nfs服务及客户端：
+service netfs stop
+chkconfig netfs --level 2345 off
+service nfslock stop
+chkconfig nfslock --level 2345 off
+如果要恢复某一个服务，可以执行下面操作：
+service acpid start && chkconfig acpid on
+也可以使用setup工具来设置

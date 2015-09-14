@@ -2,7 +2,7 @@
 # yum -y install gcc gcc-c++ libxml2 libxml2-devel autoconf libjpeg libjpeg-devel libpng libpng-devel gd
 # yum -y install bzip2 bzip2-devel curl curl-devel freetype freetype-devel zlib zlib-devel glibc glibc-devel glib2 glib2-devel 
 
-# cd /usr/software
+# cd /tmp
 # 本地上传php-5.5.9.tar.gz jpegsrc.v8d.tar.gz libmcrypt-2.5.8.tar.gz
 
 #安装 jpeg
@@ -23,16 +23,21 @@
 # tar zvxf php-5.5.9.tar.gz
 # cd php-5.5.9
 # mkdir -p /usr/local/php
+
+percona 5.6软链接问题
+ln -s /usr/local/mysql/lib/libperconaserverclient.so.18 /usr/lib64/libperconaserverclient.so
+ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.so
+
 # ./configure --prefix=/usr/local/php \
 	--with-libxml-dir=/usr/include/libxml2 \
 	--with-config-file-path=/usr/local/php/etc/ \
-	--with-mysql=/usr/local/mysql \
-	--with-mysqli=/usr/local/mysql/bin/mysql_config \
+	--with-mysql=mysqlnd  \
+	--with-mysqli=mysqlnd  \
 	--with-gd \
 	--enable-gd-native-ttf \
 	--with-zlib \
 	--with-mcrypt \
-	--with-pdo-mysql=/usr/local/mysql \
+	--with-pdo-mysql=mysqlnd  \
 	--enable-shmop \
 	--enable-soap \
 	--enable-sockets \

@@ -69,11 +69,14 @@ mysql> flush privileges;
 mysql> UPDATE user SET Host='%' WHERE User = 'root' ;
 mysql> UPDATE user SET Password = password ( 'abc@123' ),Host='%' WHERE User = 'root' ;
 mysql> flush privileges;
-mysql> grant all privileges on *.* to youruser@'%' identified by "yourpassword";
+mysql> grant all privileges on *.* to www@'%' identified by "www1234!";
 mysql> flush privileges;
 mysql> select User,Password,Host from user;
 mysql> exit;
 至此，mysql安装已经全部结束。
+
+取消mysql严格模式
+SET GLOBAL sql_mode=''
 
 mysql master config
 vi /etc/my.cnf
@@ -86,8 +89,6 @@ innodb_flush_log_at_trx_commit=1
 lower_case_table_names=1
 log_bin_trust_function_creators=1
 datadir=/data/mysql
-
-sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 :wq
 
 #mysql slave config

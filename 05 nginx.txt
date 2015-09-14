@@ -1,9 +1,9 @@
-# yum -y install make apr* autoconf automake curl-devel gcc gcc-c++ zlib-devel openssl openssl-devel pcre-devel gd kernel 
-# yum -y install keyutils patch perl kernel-headers compat* mpfr cpp glibc libgomp libstdc++-devel ppl cloog-ppl 
-# yum -y install keyutils-libs-devel libcom_err-devel libsepol-devel libselinux-devel krb5-devel zlib-devel libXpm* freetype 
-# yum -y install libjpeg* libpng* php-common php-gd ncurses* libtool* libxml2 libxml2-devel patch
+yum -y install make apr* autoconf automake curl-devel gcc gcc-c++ zlib-devel openssl openssl-devel pcre-devel gd kernel 
+yum -y install keyutils patch perl kernel-headers compat* mpfr cpp glibc libgomp libstdc++-devel ppl cloog-ppl 
+yum -y install keyutils-libs-devel libcom_err-devel libsepol-devel libselinux-devel krb5-devel zlib-devel libXpm* freetype 
+yum -y install libjpeg* libpng* php-common php-gd ncurses* libtool* libxml2 libxml2-devel patch
 
-#本地上传nginx-1.4.6.tar.gz pcre-8.31.tar.gz
+本地上传nginx-1.4.6.tar.gz pcre-8.31.tar.gz
 
 #开始安装 Nginx
 #安装Nginx所需的pcre库
@@ -21,7 +21,7 @@
 --prefix=/usr/local/nginx \
 --with-http_stub_status_module \
 --with-http_ssl_module \
---with-pcre=/usr/software/pcre-8.31
+--with-pcre=/tmp/pcre-8.31
 # make -j8 
 # make install clean
 # cd ..

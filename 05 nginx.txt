@@ -13,9 +13,9 @@ yum -y install libjpeg* libpng* php-common php-gd ncurses* libtool* libxml2 libx
 # make && make install clean
 # cd ..
 
-#安装 Nginx1.2.2
-# tar zxvf nginx-1.2.2.tar.gz
-# cd nginx-1.2.2
+#安装 Nginx1.4.6
+# tar zxvf nginx-1.4.6.tar.gz
+# cd nginx-1.4.6
 # ./configure --user=www \
 --group=www \
 --prefix=/usr/local/nginx \
@@ -28,6 +28,8 @@ yum -y install libjpeg* libpng* php-common php-gd ncurses* libtool* libxml2 libx
 
 # chmod +w /usr/local/nginx/logs
 # chown -R www:www /usr/local/nginx/logs
+
+mkdir -p /usr/local/nginx/conf/sites
 
 #创建 Nginx 配置文件
 # rm -f /usr/local/nginx/conf/nginx.conf
@@ -76,52 +78,72 @@ http {
         gzip_types text/plain application/x-javascript text/css application/xml
         gzip_vary on;
 
-        server {
-                listen 80;
-                server_name ccfs;
-                root /home/www/ccfs/backend/web;
-                index index.html index.htm index.php;
-
-                error_log /usr/local/nginx/logs/ccfs.log;
-                access_log /usr/local/nginx/logs/ccfs.log;
-
-                location / {
-                        # First attempt to serve request as file, then
-                        # as directory, then fall back to index.html
-                        try_files $uri $uri/ /index.html;
-                        # Uncomment to enable naxsi on this location
-                        # include /etc/nginx/naxsi.rules
-                        if (!-e $request_filename){
-                                rewrite (.*) /index.php last;
-                        }
-                }
-
-                location ~ \.php$ {
-                        fastcgi_pass 127.0.0.1:9000;
-                        fastcgi_index index.php;
-                        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-                        include fastcgi_params;
-                }
-
-                location ~ .*\.(gif|jpg|jpeg|png|bmp|swf)$
-                {
-                        expires      30d;
-                }
-
-                location ~ .*\.(js|css)?$
-                {
-                        expires      12h;
-                }
-
-                location /nginx_status {
-                        stub_status on;
-                        access_log off;
-                }
-        }
+        include /usr/local/nginx/conf/sites/*.conf;
 }
-
-
 :wq
+
+添加站点
+vi /usr/local/nginx/conf/sites/ndb.conf
+server {
+		listen   80; ## listen for ipv4; this line is default and implied
+		#listen   [::]:80 default ipv6only=on; ## listen for ipv6
+
+		root /home/www/ndb;
+		index index.html index.htm index.php;
+
+		# Make site accessible from http://localhost/
+		server_name qa3.ndb.capvision.com;
+
+		#error_page 404 /404.html;
+		
+		
+        location / {
+            # First attempt to serve request as file, then
+            # as directory, then fall back to index.html
+            try_files $uri $uri/ /index.html;
+            # Uncomment to enable naxsi on this location
+            # include /etc/nginx/naxsi.rules
+            if (!-e $request_filename){
+                    rewrite (.*) /index.php last;
+            }
+        }
+		
+		location /doc/ {
+                alias /usr/share/doc/;
+                autoindex on;
+                allow 127.0.0.1;
+                deny all;
+        }
+
+        location /zntp/ {
+                root /usr/share/ngnix/zntp ;
+        }
+
+		# redirect server error pages to the static page /50x.html
+		#
+		#error_page 500 502 503 504 /50x.html;
+		#location = /50x.html {
+		#       root /usr/share/nginx/www;
+		#}
+
+		# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+		#
+		location ~ \.php$ {
+            fastcgi_pass 127.0.0.1:9000;
+            fastcgi_index index.php;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            include fastcgi_params;
+        }
+
+		# deny access to .htaccess files, if Apache's document root
+		# concurs with nginx's one
+		#
+		#location ~ /\.ht {
+		#       deny all;
+		#}
+	}
+:wq
+
 
 #创建 Nginx 开机启动脚本
 #vi /etc/init.d/nginx

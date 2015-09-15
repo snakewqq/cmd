@@ -24,6 +24,9 @@
 # cd php-5.5.9
 # mkdir -p /usr/local/php
 
+yum -y install php-ldap
+cp -frp /usr/lib64/libldap* /usr/lib/
+
 percona 5.6软链接问题
 ln -s /usr/local/mysql/lib/libperconaserverclient.so.18 /usr/lib64/libperconaserverclient.so
 ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.so
@@ -63,7 +66,8 @@ ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.s
 	--with-openssl \
 	--enable-pcntl \
 	--with-gettext \
-	--enable-session
+	--enable-session \
+	--with-ldap
  
 # make -j8
 # make install

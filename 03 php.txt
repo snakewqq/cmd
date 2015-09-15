@@ -1,6 +1,7 @@
 # 编译安装php 5.5.9，fastCGI模式
-# yum -y install gcc gcc-c++ libxml2 libxml2-devel autoconf libjpeg libjpeg-devel libpng libpng-devel gd
+# yum -y install gcc gcc-c++ libxml2 libxml2-devel autoconf libjpeg libjpeg-devel libpng libpng-devel gd libc-client-devel
 # yum -y install bzip2 bzip2-devel curl curl-devel freetype freetype-devel zlib zlib-devel glibc glibc-devel glib2 glib2-devel 
+yum -y install openldap openldap-devel nss_ldap openldap-clients openldap-servers
 
 # cd /tmp
 # 本地上传php-5.5.9.tar.gz jpegsrc.v8d.tar.gz libmcrypt-2.5.8.tar.gz

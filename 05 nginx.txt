@@ -146,9 +146,7 @@ server {
 
 
 #创建 Nginx 开机启动脚本
-#vi /etc/init.d/nginx
-
-#加入以下内容
+vi /etc/init.d/nginx
 #!/bin/bash
 #
 # chkconfig: - 85 15
@@ -198,7 +196,7 @@ esac
 :wq
 
 #为 nginx.sh 脚本设置可执行属性
-# chmod +x /etc/init.d/nginx
+chmod +x /etc/init.d/nginx
 
 # 添加 Nginx 为系统服务（开机自动启动）
 # chkconfig --add nginx

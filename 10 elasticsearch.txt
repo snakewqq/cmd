@@ -1,7 +1,7 @@
-本地上传elasticsearch-1.7.1.tar.gz
+本地上传elasticsearch-1.5.2.tar.gz
 cd /tmp
-tar zxvf elasticsearch-1.7.1.tar.gz
-mv elasticsearch-1.7.1 /usr/local/elasticsearch
+tar zxvf elasticsearch-1.5.2.tar.gz
+mv elasticsearch-1.5.2 /usr/local/elasticsearch
 
 增加es内存
 vi /etc/profile
@@ -49,20 +49,20 @@ cd /usr/local/elasticsearch/bin
 curl http://localhost:9200/_nodes/process?pretty
 
 安全组件
-vi /usr/local/elasticsearch
+cd /usr/local/elasticsearch/bin
 1.安装license
-bin/plugin -i elasticsearch/license/latest
+./plugin -i elasticsearch/license/latest
 2. 安装shield
-bin/plugin -i elasticsearch/shield/latest
+./plugin -i elasticsearch/shield/latest
 3. Start Elasticsearch
-bin/elasticsearch -d
+./elasticsearch -d
 尝试无授权访问：
 curl -XGET 'http://localhost:9200/'
 4. 创建管理员
-bin/shield/esusers useradd es_admin -r admin
+./shield/esusers useradd es_admin -r admin
 new passwd:es_admin_4321
 修改用户密码：
-bin/shield/esusers passwd es_admin
+./shield/esusers passwd es_admin
 尝试授权访问：
 curl -u es_admin -XGET 'http://localhost:9200/'
 curl -u es_admin:es_admin_4321 -XGET 'http://localhost:9200/'

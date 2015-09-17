@@ -7,11 +7,11 @@ yum -y install libjpeg* libpng* php-common php-gd ncurses* libtool* libxml2 libx
 
 #开始安装 Nginx
 #安装Nginx所需的pcre库
-# tar zxvf pcre-8.31.tar.gz
-# cd pcre-8.31
-# ./configure --prefix=/usr/local/pcre
-# make && make install clean
-# cd ..
+tar zxvf pcre-8.31.tar.gz
+cd pcre-8.31
+./configure --prefix=/usr/local/pcre
+make && make install clean
+cd ..
 
 #安装 Nginx1.4.6
 # tar zxvf nginx-1.4.6.tar.gz
@@ -32,8 +32,8 @@ yum -y install libjpeg* libpng* php-common php-gd ncurses* libtool* libxml2 libx
 mkdir -p /usr/local/nginx/conf/sites
 
 #创建 Nginx 配置文件
-# rm -f /usr/local/nginx/conf/nginx.conf
-# vi /usr/local/nginx/conf/nginx.conf
+rm -f /usr/local/nginx/conf/nginx.conf
+vi /usr/local/nginx/conf/nginx.conf
 user www www;
 worker_processes 8;
 
@@ -199,14 +199,14 @@ esac
 chmod +x /etc/init.d/nginx
 
 # 添加 Nginx 为系统服务（开机自动启动）
-# chkconfig --add nginx
-# chkconfig nginx on
-# service nginx start
+chkconfig --add nginx
+chkconfig nginx on
+service nginx start
 
-# vi /etc/sysconfig/iptables
+vi /etc/sysconfig/iptables
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT 
 :wq
-# service iptables restart
+service iptables restart
 
 #在不停止 Nginx 服务的情况下平滑变更 Nginx 配置
 #修改 /usr/local/nginx/conf/nginx.conf 配置文件后，请执行以下命令检查配置文件是否正确：

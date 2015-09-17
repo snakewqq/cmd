@@ -39,7 +39,20 @@ make install
 cd /usr/local/mysql
 chown mysql.mysql -R .          
 rm -rf /etc/my.cnf                
-cp support-files/my-default.cnf /etc/my.cnf  
+
+mysql master config
+vi /etc/my.cnf
+[mysqld]
+server-id=1
+log-bin=mysqlmaster-bin.log
+sync_binlog=1
+innodb_buffer_pool_size=512M
+innodb_flush_log_at_trx_commit=1
+lower_case_table_names=1
+log_bin_trust_function_creators=1
+datadir=/data/mysql
+:wq
+
 chmod 755 scripts/mysql_install_db        
 scripts/mysql_install_db  --user=mysql  --basedir=/usr/local/mysql --datadir=/data/mysql/ --no-defaults
 cp support-files/mysql.server /etc/init.d/mysqld
@@ -77,19 +90,6 @@ mysql> exit;
 
 取消mysql严格模式
 SET GLOBAL sql_mode=''
-
-mysql master config
-vi /etc/my.cnf
-[mysqld]
-server-id=1
-log-bin=mysqlmaster-bin.log
-sync_binlog=1
-innodb_buffer_pool_size=512M
-innodb_flush_log_at_trx_commit=1
-lower_case_table_names=1
-log_bin_trust_function_creators=1
-datadir=/data/mysql
-:wq
 
 #mysql slave config
 vi /etc/my.cnf

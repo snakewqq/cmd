@@ -25,7 +25,6 @@ yum -y install openldap openldap-devel nss_ldap openldap-clients openldap-server
 # cd php-5.5.9
 # mkdir -p /usr/local/php
 
-yum -y install php-ldap
 cp -frp /usr/lib64/libldap* /usr/lib/
 
 percona 5.6软链接问题

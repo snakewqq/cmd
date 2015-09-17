@@ -29,9 +29,11 @@ PEERROUTES=yes
 # service network restart 
 
 配置hostname
-# vi /etc/sysconfig/network
-HOSTNAME=localhost
+vi /etc/sysconfig/network
+NETWORKING=yes　　　　　　
+HOSTNAME=web1
 :wq
+hostname web1        #立即生效
 
 禁用selinux
 # vi /etc/sysconfig/selinux
@@ -68,11 +70,31 @@ SELINUX=disabled
 */30 * * * * ntpdate time.nist.gov > /dev/null 2>&1
 :wq
 
-# useradd wesley
-# chmod 740 /etc/sudoers
-# vi /etc/sudoers
-/root    ALL=(ALL)       ALL
-wesley ALL=(ALL)       ALL
+
+添加用户
+useradd capvision
+passwd capvision
+chmod 740 /etc/sudoers
+vi /etc/sudoers
+%wheel  ALL=(ALL)       ALL
 :wq
-# chmod 440 /etc/sudoers
-# su wesley
+chmod 440 /etc/sudoers
+usermod -g root capvision
+su capvision
+su -
+
+禁止root本地登录
+vi /etc/pam.d/login
+# shift+G, o
+auth required pam_succeed_if.so user != root quiet
+:wq
+
+禁止root远程ssh登录
+vi /etc/ssh/sshd_config
+PermitRootLogin no
+:wq
+service sshd restart
+
+删除用户（删除前先备份/home/www目录）
+userdel -rf www
+

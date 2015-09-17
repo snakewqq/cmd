@@ -32,7 +32,7 @@ percona 5.6软链接问题
 ln -s /usr/local/mysql/lib/libperconaserverclient.so.18 /usr/lib64/libperconaserverclient.so
 ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.so
 
-# ./configure --prefix=/usr/local/php \
+./configure --prefix=/usr/local/php \
 	--with-libxml-dir=/usr/include/libxml2 \
 	--with-config-file-path=/usr/local/php/etc/ \
 	--with-mysql=mysqlnd  \
@@ -70,30 +70,31 @@ ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.s
 	--enable-session \
 	--with-ldap
  
-# make -j8
-# make install
-# cp php.ini-production /usr/local/php/etc/php.ini
-# rm -rf /etc/php.ini
-# ln -s /usr/local/php/etc/php.ini /etc/php.ini
-# cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf
-# vi /usr/local/php/etc/php-fpm.conf
+make -j8
+make install
+cp php.ini-production /usr/local/php/etc/php.ini
+rm -rf /etc/php.ini
+ln -s /usr/local/php/etc/php.ini /etc/php.ini
+cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf
+vi /usr/local/php/etc/php-fpm.conf
 user = www
 group = www
 #取消前面的分号
 pid = run/php-fpm.pid
 :wq
-#设置 php-fpm开机启动
-# cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-# chmod +x /etc/init.d/php-fpm
-# chkconfig --add php-fpm
-# chkconfig php-fpm on
-# groupadd www       
-# useradd www -g www -s /sbin/nologin
-# service php-fpm start
-# vi /etc/sysconfig/iptables
+
+设置 php-fpm开机启动
+cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
+chmod +x /etc/init.d/php-fpm
+chkconfig --add php-fpm
+chkconfig php-fpm on
+groupadd www       
+useradd www -g www
+service php-fpm start
+vi /etc/sysconfig/iptables
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 9000 -j ACCEPT 
 :wq
-# service iptables restart 
+service iptables restart 
 
 #apache验证
 # cd /usr/local/apache/htdocs

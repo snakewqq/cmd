@@ -39,6 +39,8 @@ cd /usr/local/elasticsearch/bin
 ./plugin -install mobz/elasticsearch-head
 http://localhost:9200/_plugin/head/
 
+./plugin -i elasticsearch/marvel/latest
+
 后台启动es
 cd /usr/local/elasticsearch/bin
 ./elasticsearch -d

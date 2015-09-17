@@ -5,12 +5,12 @@ wget https://www.percona.com/downloads/XtraBackup/Percona-XtraBackup-2.2.12/bina
 rpm -ivh percona-xtrabackup-2.2.12-1.el6.x86_64.rpm
 
 完全备份
-innobackupex --user=root --password=123456 --host=127.0.0.1 /tmp/backup --no-timestamp
+innobackupex --user=admin --password=123456 --host=127.0.0.1 /tmp/backup --no-timestamp
 
 完全恢复
-innobackupex --user=root --password=123456 --host=127.0.0.1 --apply-log --use-memory=2G /tmp/backup
+innobackupex --user=admin --password=123456 --host=127.0.0.1 --apply-log --use-memory=2G /tmp/backup
 
-innobackupex --user=root --password=123456 --host=127.0.0.1 --copy-back /path/to/BACKUP-DIR
+innobackupex --user=admin --password=123456 --host=127.0.0.1 --copy-back /path/to/BACKUP-DIR
  
 Warning: Using unique option prefix open_files instead of open_files_limit is deprecated and will be removed in a future release. Please use the full name instead.
 innobackupex: Created backup directory /data/backup/2014-06-30_09-14-48

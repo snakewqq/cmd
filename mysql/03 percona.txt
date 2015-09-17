@@ -53,16 +53,16 @@ vi /etc/sysconfig/iptables
 # service iptables restart
 
 将mysql加入path
-# vi /etc/profile
+vi /etc/profile
 export PATH=$PATH:/usr/local/mysql/bin
 :wq
-# source /etc/profile
-# mysql --version
+source /etc/profile
+mysql --version
 
 初始化root密码
-# mysqladmin -u root password
+mysqladmin -u root password
 
-# mysql -u root -p                                     
+mysql -u root -p                                     
 mysql> use mysql;
 mysql> delete from user where password='';
 mysql> flush privileges;

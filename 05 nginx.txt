@@ -13,18 +13,19 @@ cd pcre-8.31
 make && make install clean
 cd ..
 
-#安装 Nginx1.4.6
-# tar zxvf nginx-1.4.6.tar.gz
-# cd nginx-1.4.6
-# ./configure --user=www \
+安装 Nginx1.4.6
+tar zxvf nginx-1.4.6.tar.gz
+cd nginx-1.4.6
+./configure --user=www \
 --group=www \
 --prefix=/usr/local/nginx \
 --with-http_stub_status_module \
 --with-http_ssl_module \
 --with-pcre=/tmp/pcre-8.31
-# make -j8 
-# make install clean
-# cd ..
+
+make -j8 
+make install clean
+cd ..
 
 # chmod +w /usr/local/nginx/logs
 # chown -R www:www /usr/local/nginx/logs
@@ -82,7 +83,28 @@ http {
 }
 :wq
 
-添加站点
+添加test站点
+vi /usr/local/nginx/conf/sites/test.conf
+server {
+	listen   80; ## listen for ipv4; this line is default and implied
+
+    root /home/www/test;
+    index index.html index.htm index.php;
+    server_name localhost;
+
+    #error_page 404 /404.html;
+
+    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+    #
+    location ~ \.php$ {
+		fastcgi_pass 127.0.0.1:9000;
+		fastcgi_index index.php;
+		fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+		include fastcgi_params;
+	}
+}
+
+添加ndb站点
 vi /usr/local/nginx/conf/sites/ndb.conf
 server {
 		listen   80; ## listen for ipv4; this line is default and implied

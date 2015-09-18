@@ -7,23 +7,23 @@ yum -y install openldap openldap-devel nss_ldap openldap-clients openldap-server
 # 本地上传php-5.5.9.tar.gz jpegsrc.v8d.tar.gz libmcrypt-2.5.8.tar.gz
 
 #安装 jpeg
-# tar zxvf jpegsrc.v8d.tar.gz
-# cd jpeg-8d
-# ./configure -enable-shared -enable-static
-# make && make install clean
-# cd ..
+tar zxvf jpegsrc.v8d.tar.gz
+cd jpeg-8d
+./configure -enable-shared -enable-static
+make && make install clean
+cd ..
 
-#安装libmcrypt
-# tar zxvf libmcrypt-2.5.8.tar.gz
-# cd libmcrypt-2.5.8
-# ./configure
-# make && make install
-# cd ..
+安装libmcrypt
+tar zxvf libmcrypt-2.5.8.tar.gz
+cd libmcrypt-2.5.8
+./configure
+make && make install
+cd ..
 
-#安装php
-# tar zvxf php-5.5.9.tar.gz
-# cd php-5.5.9
-# mkdir -p /usr/local/php
+安装php
+tar zvxf php-5.5.9.tar.gz
+cd php-5.5.9
+mkdir -p /usr/local/php
 
 cp -frp /usr/lib64/libldap* /usr/lib/
 

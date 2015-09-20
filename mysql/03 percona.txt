@@ -45,7 +45,7 @@ vi /etc/my.cnf
 server-id=1
 log-bin=mysqlmaster-bin.log
 sync_binlog=1
-innodb_buffer_pool_size=512M
+innodb_buffer_pool_size=8M
 innodb_flush_log_at_trx_commit=1
 lower_case_table_names=1
 log_bin_trust_function_creators=1
@@ -98,7 +98,6 @@ log-bin=mysqlslave-bin.log
 sync_binlog=1
 innodb_buffer_pool_size=512M
 innodb_flush_log_at_trx_commit=1
-sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
 lower_case_table_names=1
 log_bin_trust_function_creators=1
 datadir=/data/mysql
@@ -152,67 +151,45 @@ mysql> show slave status \G
 
 #优化后的主从配置（待验证）
 #master
-[client]
-port=3306
-socket=/data/mysql/mysql.sock
-default-character-set=utf8
-
 [mysqld]
-sync_binlog=1
 server-id=1
-port=3306
-socket=/data/mysql/mysql.sock
-pid-file=/data/mysql/localhost.localdomain.pid
-user=mysql
-datadir=/data/mysql
-tmpdir=/tmp
-log-bin=/data/mysql/mysqlmaster-bin
-log-error=/data/mysql/logs/error.log
-slow_query_log_file=/data/mysql/logs/slow.log
-binlog_format=mixed
-slow_query_log
-long_query_time=10
-wait_timeout=31536000
-interactive_timeout=31536000
-max_connections=500
-max_user_connections=490
-max_connect_errors=2
-character_set_server=utf8
-skip-external-locking
-key_buffer_size = 128M
-max_allowed_packet = 5M
-table_open_cache = 512
-sort_buffer_size = 2M
-read_buffer_size = 2M
-read_rnd_buffer_size = 8M
-myisam_sort_buffer_size = 64M
-thread_cache_size = 8
-query_cache_size = 32M
-
-# Try number of CPU's*2 for thread_concurrency
-thread_concurrency = 4
-binlog-ignore-db=mysql
-binlog-ignore-db=information_schema
-replicate_ignore_db=mysql
-replicate_ignore_db=information_schema
-expire-logs-days=10
-skip-slave-start
-skip-name-resolve
+log-bin=mysqlmaster-bin.log
+sync_binlog=1
+innodb_buffer_pool_size=512M
+innodb_flush_log_at_trx_commit=1
 lower_case_table_names=1
 log_bin_trust_function_creators=1
+datadir=/data/mysql
 
-# InnoDB
-innodb_data_home_dir=/data/mysql/
-innodb_log_group_home_dir=/data/mysql/logs
-innodb_data_file_path=ibdata1:128M:autoextend
-innodb_buffer_pool_size=2G
-innodb_log_file_size=10M
-innodb_log_buffer_size=8M
-innodb_lock_wait_timeout=50
+default-storage-engine = InnoDB
+character-set-server = utf8
 innodb_file_per_table
-innodb_flush_log_at_trx_commit=1
 
-#sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+symbolic-links = 0
+skip-external-locking
+init_connect = 'SET NAMES utf8'
+back_log = 500
+wait_timeout = 1800
+interactive_timeout = 1800
+max_connections = 2000
+max_user_connections = 800
+key_buffer_size = 16G
+innodb_log_buffer_size = 8M
+query_cache_type  = 1
+query_cache_limit = 4M
+query_cache_size = 256M
+thread_cache_size = 64
+
+innodb_flush_log_at_trx_commit = 0
+innodb_log_file_size = 640M
+max_allowed_packet = 16M
+thread_stack = 192K
+read_buffer_size = 1M
+read_rnd_buffer_size = 2M
+sort_buffer_size = 64M
+join_buffer_size = 64M
+tmp_table_size = 64M
+table_open_cache       = 2000
 
 #slave 
 vi /etc/my.cnf

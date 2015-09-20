@@ -1,0 +1,7 @@
+qa.capweb.capvision.com
+qa.ndb.capvision.com
+qa.sms.capvision.com
+qa.survey.capvision.com
+qa.tc.capvision.com
+qa.vesta.capvision.com
+qab.version.capvision.com

@@ -1,0 +1,73 @@
+243
+00 02 * * * perl /root/recover.pl
+
+#!/usr/bin/env perl
+
+use strict;
+use Data::Dumper;
+
+my $filelist;
+my $matchfilename;
+my $cmd;
+#$filelist = `ssh recover\@192.168.5.100 ls -t /sharebackup/DBbackup | head -24`;
+#print Dumper($filelist);
+
+$matchfilename = `date -d"-1 day" +%Y%m%d`;
+chomp($matchfilename);
+$matchfilename = $matchfilename."00.tgz";
+#------ umount all files from 40 --------------#
+print "umount call_manager_log and mailbox\n";
+print "we haven't mount ndb/protected/files for security, you can mount it manually!\n";
+`umount /usr/share/nginx/www/call_manager_log`;
+`umount /usr/share/nginx/www/ndb/files`;
+`umount /usr/share/nginx/www/mailbox`;
+#------get database from 5.100----------------#
+print "get ".$matchfilename."\n";
+`scp recover\@192.168.5.100:/sharebackup/DBbackup/$matchfilename ./`;
+#$cmd = "tar -zxvf $matchfilename";
+#---------recover database file on local ---------------#
+print "recover databases\n";
+`rm -rf /root/mysqlback`;
+`tar -zxvf $matchfilename`;
+`rm -rf $matchfilename`;
+`service mysql stop`;
+`rm /var/lib/mysql/* -rf`;
+`innobackupex -defaults-file=/etc/mysql/my.cnf --apply-log /root/mysqlback/00/`;
+`innobackupex -defaults-file=/etc/mysql/my.cnf --copy-back /root/mysqlback/00/`;
+`chown -R mysql:mysql /var/lib/mysql`;
+`service mysql start`;
+#----------recover the latest code on  local -----------------#
+print "recover code\n";
+`rm -rf /usr/share/nginx/www/ndb`;
+`git clone git\@192.168.5.26:ndb.git /usr/share/nginx/www/ndb`;
+`chown -R www-data:www-data /usr/share/nginx/www/ndb`;
+`chmod -R 777 /usr/share/nginx/www/ndb/protected/runtime`;
+`rm -rf /usr/share/nginx/www/ndb/assets/*`;
+#print $cmd."\n";
+#-------------remount all files fomr 40 -------------#
+print "mount call_manager_log and mail_box\n";
+print "we haven't mount ndb/protected/files for security, you can mount it manually!\n";
+`mount -t nfs -o soft,bg,rsize=32768,wsize=32768,noexec,rw,nodev,nosuid,tcp 192.168.5.40:/share/sharemsg /usr/share/nginx/www/call_manager_log`;
+#`mount -t nfs -o soft,bg,rsize=32768,wsize=32768,noexec,rw,nodev,nosuid,tcp 192.168.5.40:/share/sharefs  /usr/share/nginx/www/ndb/files`;
+`mount -t nfs -o soft,bg,rsize=32768,wsize=32768,noexec,rw,nodev,nosuid,tcp 192.168.5.40:/share/sharemailbox /usr/share/nginx/www/mailbox`;
+
+
+elasticsearch
+vi /home/capvision/elasticsearch-1.5.2/config/elasticsearch.yml
+index:
+  analysis:
+    analyzer:
+      ik:
+          alias: [news_analyzer_ik,ik_analyzer]
+          type: org.elasticsearch.index.analysis.IkAnalyzerProvider
+
+index.analysis.analyzer.default.type : "ik"
+
+cluster.name: db_prod_es
+node.name: "node243"
+node.master: false
+node.data: true
+
+threadpool.bulk.queue_size: 500
+:wq
+

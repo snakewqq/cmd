@@ -40,6 +40,9 @@ cd /usr/local/mysql
 chown mysql.mysql -R .          
 rm -rf /etc/my.cnf                
 
+取消mysql严格模式
+SET GLOBAL sql_mode=''
+
 vi /etc/my.cnf
 [mysqld]
 server-id=1
@@ -50,6 +53,7 @@ innodb_flush_log_at_trx_commit=1
 lower_case_table_names=1
 log_bin_trust_function_creators=1
 datadir=/data/mysql
+max_allowed_packet=32M
 :wq
 
 chmod 755 scripts/mysql_install_db        
@@ -87,8 +91,6 @@ mysql> select User,Password,Host from user;
 mysql> exit;
 至此，mysql安装已经全部结束。
 
-取消mysql严格模式
-SET GLOBAL sql_mode=''
 
 #mysql slave config
 vi /etc/my.cnf

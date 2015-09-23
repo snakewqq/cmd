@@ -1,0 +1,231 @@
+1 Memcached简介
+Memcached 是一个高性能的分布式内存对象缓存系统，用于动态Web应用以减轻数据库负载。它通过在内存中缓存数据和对象来减少读取数据库的次数，从而提高动态、数据库驱动网站的速度。Memcached基于一个存储键/值对的hashmap。其守护进程（daemon ）是用C写的，但是客户端可以用任何语言来编写，并通过memcached协议与守护进程通信。
+
+
+2 Memcached下载
+1）下载libevent
+# wget http://monkey.org/~provos/libevent-1.4.14b-stable.tar.gz 
+2）下载memcached
+# wget http://memcached.googlecode.com/files/memcached-1.4.5.tar.gz
+
+3)本次安装用到的所有软件下载地址（安装环境为CentOS-6.5） 
+http://download.csdn.net/detail/clevercode/8654863
+
+
+3 Memcached安装
+3.1 安装libevent
+1）确保先进行了安装linux必备常用库（Linux中必备常用支持库的安装：http://blog.csdn.net/clevercode/article/details/45438401）。解压
+# cd /usr/local/src/memcached
+# tar -zxvf libevent-1.4.14b-stable.tar.gz
+# cd libevent-1.4.14b-stable
+2）配置
+# ./configure --prefix=/usr/local/libevent
+4) 编译
+# make
+5) 安装
+# make install
+6) 配置链接
+# ln -s /usr/local/libevent/lib/libevent-1.4.so.2 /lib64/libevent-1.4.so.2
+
+
+3.2 安装memcached
+1) 解压
+# tar -zxvf memcached-1.4.5.tar.gz
+# cd memcached-1.4.5
+2) 配置
+# ./configure --prefix=/usr/local/memcached --with-libevent=/usr/local/libevent/
+3）编译
+# make
+7) 安装
+# make install
+
+3.3 memcached启动停止脚本
+方式一：手动编写
+1)编写脚本
+vi /etc/init.d/memcached
+#!/bin/sh  
+#  
+# Startup script for the server of memcached  
+#http://blog.rekfan.com/?p=172  
+# processname: memcached  
+# pidfile: /usr/local/memcached/memcached.pid  
+# logfile: /usr/local/memcached/memcached_log.txt  
+# memcached_home: /etc/memcached  
+# chkconfig: 35 21 79  
+# description: Start and stop memcached Service  
+  
+# Source function library  
+. /etc/init.d/functions  
+  
+RETVAL=0  
+  
+prog="memcached"  
+basedir=/usr/local/memcached  
+cmd=${basedir}/bin/memcached  
+pidfile="$basedir/${prog}.pid"  
+#logfile="$basedir/memcached_log.txt"  
+  
+# 设置memcached启动参数  
+ipaddr="0.0.0.0"          # 绑定侦听的IP地址  
+port="11211"                    # 服务端口  
+username="root"                 # 运行程序的用户身份  
+max_memory=100                   # default: 64M | 最大使用内存  
+max_simul_conn=1024             # default: 1024 | 最大同时连接数  
+#maxcon=51200  
+#growth_factor=1.3              # default: 1.25 | 块大小增长因子  
+#thread_num=6                   # default: 4  
+#verbose="-vv"                  # 查看详细启动信息  
+#bind_protocol=binary           # ascii, binary, or auto (default)  
+  
+start() {  
+    echo -n $"Starting service: $prog"  
+    $cmd -d -m $max_memory -u $username -l $ipaddr -p $port -c $max_simul_conn -P $pidfile  
+    RETVAL=$?  
+    echo  
+    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/$prog  
+}  
+  
+stop() {  
+    echo -n $"Stopping service: $prog  "  
+    run_user=`whoami`  
+    pidlist=`ps -ef | grep $run_user | grep memcached | grep -v grep | awk '{print($2)}'`  
+    for pid in $pidlist  
+    do  
+        #           echo "pid=$pid"  
+        kill -9 $pid  
+        if [ $? -ne 0 ]; then  
+            return 1  
+        fi  
+    done  
+    RETVAL=$?  
+    echo  
+    [ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/$prog  
+}  
+  
+# See how we were called.  
+case "$1" in  
+    start)  
+        start  
+    ;;  
+    stop)  
+        stop  
+    ;;  
+    #reload)  
+    #    reload  
+    #    ;;  
+    restart)  
+        stop  
+        start  
+    ;;  
+    #condrestart)  
+    #    if [ -f /var/lock/subsys/$prog ]; then  
+    #        stop  
+    #        start  
+    #    fi  
+    #    ;;  
+    status)  
+        status memcached  
+    ;;  
+    *)  
+    echo "Usage: $0 {start|stop|restart|status}"  
+    exit 1  
+esac  
+exit $RETVAL
+
+2) 配置权限与开机启动
+# chmod 755 /etc/init.d/memcached
+# chkconfig --add memcached
+# chkconfig --level 35 memcached on
+
+3.4 配置防火墙
+1）在防火墙规则中加入11211端口
+# vi /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 11211 -j ACCEPT 
+2)重启防火墙
+# service iptables restart
+
+
+3.5 启动停止
+1）启动
+# service memcached start
+实际上调用了一下命令:
+/usr/local/memcached/bin/memcached -d -m 64 -u root -l 192.168.224.128 
+-p 11211 -c 1024 -P /usr/local/memcached/memcached.pid
+
+启动参数说明：
+-d 选项是启动一个守护进程，
+-m 是分配给Memcache使用的内存数量，单位是MB，默认64MB 
+-M return error on memory exhausted (rather than removing items)
+-u 是运行Memcache的用户，如果当前为root 的话，需要使用此参数指定用户。
+-l 是监听的服务器IP地址，默认为所有网卡。
+-p 是设置Memcache的TCP监听的端口，最好是1024以上的端口
+-c 选项是最大运行的并发连接数，默认是1024
+-P 是设置保存Memcache的pid文件 
+-f chunk size growth factor (default: 1.25) 
+-I Override the size of each slab page. Adjusts max item size(1.4.2版本新增)
+
+2)查看状态
+service memcached status
+
+3)重启
+service memcached restart
+
+
+
+安装PHP的memcache扩展
+#wget http://pecl.php.net/get/memcache-2.2.7.tgz
+# tar zxf memcache-2.2.7.tgz
+# cd memcache-2.2.7
+# find / -name phpize
+/usr/local/php/bin/phpize
+# /usr/local/php/bin/phpize //执行，如果有输出结果则可以执行扩展
+Configuring for:
+PHP Api Version: 20100412
+Zend Module Api No: 20100525
+Zend Extension Api No: 220100525
+# ./configure --enable-memcache --with-php-config=/usr/local/php/bin/php-config --with-zlib-dir
+# make
+# make install
+需要在php.ini(vi /etc/php.ini)文件中相应的位置加入:
+extension="/usr/local/php/lib/php/extensions/no-debug-non-zts-20121212/memcache.so"
+启动memcached
+重启php-fpm
+
+优点和缺点：
+memcached部分实现的是内存空间分配和回收,以及存储服务监听和提供.对于分布式的实现,取决于客户端的使用和构造.我们使用的客户端是完全支持分布式的.只是可能会出现某些问题.
+诸如一旦出现网络问题, 网络问题导致某个分布式服务器中的一台失去联系之后,到这台机器恢复正常工作的这段时间内, 写入分布式服务器的数据将基本不可以获取. 可以通过采用分布式hash表的方式解决这个问题
+
+测试memcached启动是否连接正常
+[root@web181 ~]# telnet 192.168.5.176 11211
+Trying 127.0.0.1...
+<30 new auto-negotiating client connection
+Connected to localhost.localdomain (127.0.0.1).
+Escape character is '^]'.
+set test 0 0 10       #向test中存入数据
+30: Client using the ascii protocol
+<30 set test 0 0 10
+test_value           #输入的key为test存入的数据
+>30 STORED
+STORED             #返回set结果
+get test              #获取的数据
+<30 get test
+>30 sending key test
+>30 END
+VALUE test 0 10
+test_value            #取得的key为test中的数据
+END
+quit
+<30 quit
+<30 connection closed.
+Connection closed by foreign host.
+关闭Memcached的命令如下：
+[root@web181 ~]# kill `cat /var/run/memcached.pid`
+测试Memcache的PHP扩展是否安装成功
+vim mem.php
+<?php
+$mem = new Memcache;
+$mem->connect('192.168.5.176', 11211);
+$mem->set(’test’, ‘Hello world!’, 0, 12);
+$val = $mem->get(’test’);
+echo $val;
+?>

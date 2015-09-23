@@ -91,6 +91,9 @@ server {
     root /home/www/test;
     index index.html index.htm index.php;
     server_name localhost;
+	
+	access_log /usr/local/nginx/logs/vesta.access.log;
+    error_log /usr/local/nginx/logs/vesta.error.log warn;
 
     #error_page 404 /404.html;
 

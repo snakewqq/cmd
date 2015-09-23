@@ -7,6 +7,9 @@ rpm -ivh percona-xtrabackup-2.2.12-1.el6.x86_64.rpm
 完全备份
 innobackupex --user=admin --password=123456 --host=127.0.0.1 /tmp/backup --no-timestamp
 
+单个数据库备份
+innobackupex --user=admin --password=123456 --host=127.0.0.1 --databases=test --defaults-file=/etc/my.cnf  /tmp/backup --no-timestamp
+
 完全恢复
 innobackupex --user=admin --password=123456 --host=127.0.0.1 --apply-log --use-memory=2G /tmp/backup
 

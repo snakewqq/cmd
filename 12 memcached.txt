@@ -16,24 +16,22 @@ put libevent-1.4.14b-stable.tar.gz memcached-1.4.5.tar.gz memcache-2.2.7.tgz
 3 Memcached安装
 3.1 安装libevent
 1）确保先进行了安装linux必备常用库（Linux中必备常用支持库的安装：http://blog.csdn.net/clevercode/article/details/45438401）。解压
-cd /tmp
-tar -zxvf libevent-1.4.14b-stable.tar.gz
+cd /tmp && \
+tar -zxvf libevent-1.4.14b-stable.tar.gz && \
 cd libevent-1.4.14b-stable
-2）配置
-./configure --prefix=/usr/local/libevent
-4) 编译安装
+2）配置编译安装
+./configure --prefix=/usr/local/libevent && \
 make && make install
-5) 配置链接
+3) 配置链接
 ln -s /usr/local/libevent/lib/libevent-1.4.so.2 /lib64/libevent-1.4.so.2
 
 
 3.2 安装memcached
 1) 解压
-cd /tmp && tar -zxvf memcached-1.4.5.tar.gz
+cd /tmp && tar -zxvf memcached-1.4.5.tar.gz && \
 cd memcached-1.4.5
-2) 配置
-./configure --prefix=/usr/local/memcached --with-libevent=/usr/local/libevent/
-3）编译安装
+2) 配置编译安装
+./configure --prefix=/usr/local/memcached --with-libevent=/usr/local/libevent/ && \
 make && make install
 
 3.3 memcached启动停止脚本
@@ -171,15 +169,17 @@ service memcached restart
 安装PHP的memcache扩展
 #wget http://pecl.php.net/get/memcache-2.2.7.tgz
 
-cd /tmp && tar zxf memcache-2.2.7.tgz
-cd memcache-2.2.7
-find / -name phpize
+cd /tmp && tar zxvf memcache-2.2.7.tgz && \
+cd memcache-2.2.7 && \
+find / -name phpize && \
 /usr/local/php/bin/phpize
-# /usr/local/php/bin/phpize		#执行，如果有输出结果则可以执行扩展
+/usr/local/php/bin/phpize && \		#执行，如果有输出结果则可以执行扩展
+
 Configuring for:
 PHP Api Version: 20100412
 Zend Module Api No: 20100525
 Zend Extension Api No: 220100525
+
 ./configure --enable-memcache --with-php-config=/usr/local/php/bin/php-config --with-zlib-dir && \
 make && make install
 
@@ -187,8 +187,8 @@ make && make install
 vi /etc/php.ini
 /msql.so
 extension="/usr/local/php/lib/php/extensions/no-debug-non-zts-20121212/memcache.so"
-启动memcached
-重启php-fpm
+启动memcached & 重启php-fpm
+service memcached restart && \
 service php-fpm restart
 
 优点和缺点：

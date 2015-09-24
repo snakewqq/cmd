@@ -40,7 +40,6 @@ http://download.csdn.net/detail/clevercode/8654863
 # make install
 
 3.3 memcached启动停止脚本
-方式一：手动编写
 1)编写脚本
 vi /etc/init.d/memcached
 #!/bin/sh  
@@ -131,6 +130,8 @@ case "$1" in
     exit 1  
 esac  
 exit $RETVAL
+:wq
+
 
 2) 配置权限与开机启动
 # chmod 755 /etc/init.d/memcached
@@ -186,10 +187,13 @@ Zend Extension Api No: 220100525
 # ./configure --enable-memcache --with-php-config=/usr/local/php/bin/php-config --with-zlib-dir
 # make
 # make install
-需要在php.ini(vi /etc/php.ini)文件中相应的位置加入:
+需要在
+vi /etc/php.ini
+/msql.so
 extension="/usr/local/php/lib/php/extensions/no-debug-non-zts-20121212/memcache.so"
 启动memcached
 重启php-fpm
+service php-fpm restart
 
 优点和缺点：
 memcached部分实现的是内存空间分配和回收,以及存储服务监听和提供.对于分布式的实现,取决于客户端的使用和构造.我们使用的客户端是完全支持分布式的.只是可能会出现某些问题.

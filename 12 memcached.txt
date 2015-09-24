@@ -4,40 +4,37 @@ Memcached 是一个高性能的分布式内存对象缓存系统，用于动态W
 
 2 Memcached下载
 1）下载libevent
-# wget http://monkey.org/~provos/libevent-1.4.14b-stable.tar.gz 
+wget http://monkey.org/~provos/libevent-1.4.14b-stable.tar.gz 
 2）下载memcached
-# wget http://memcached.googlecode.com/files/memcached-1.4.5.tar.gz
+wget http://memcached.googlecode.com/files/memcached-1.4.5.tar.gz
 
 3)本次安装用到的所有软件下载地址（安装环境为CentOS-6.5） 
 http://download.csdn.net/detail/clevercode/8654863
 
+put libevent-1.4.14b-stable.tar.gz memcached-1.4.5.tar.gz memcache-2.2.7.tgz
 
 3 Memcached安装
 3.1 安装libevent
 1）确保先进行了安装linux必备常用库（Linux中必备常用支持库的安装：http://blog.csdn.net/clevercode/article/details/45438401）。解压
-# cd /usr/local/src/memcached
-# tar -zxvf libevent-1.4.14b-stable.tar.gz
-# cd libevent-1.4.14b-stable
+cd /tmp
+tar -zxvf libevent-1.4.14b-stable.tar.gz
+cd libevent-1.4.14b-stable
 2）配置
-# ./configure --prefix=/usr/local/libevent
-4) 编译
-# make
-5) 安装
-# make install
-6) 配置链接
-# ln -s /usr/local/libevent/lib/libevent-1.4.so.2 /lib64/libevent-1.4.so.2
+./configure --prefix=/usr/local/libevent
+4) 编译安装
+make && make install
+5) 配置链接
+ln -s /usr/local/libevent/lib/libevent-1.4.so.2 /lib64/libevent-1.4.so.2
 
 
 3.2 安装memcached
 1) 解压
-# tar -zxvf memcached-1.4.5.tar.gz
-# cd memcached-1.4.5
+cd /tmp && tar -zxvf memcached-1.4.5.tar.gz
+cd memcached-1.4.5
 2) 配置
-# ./configure --prefix=/usr/local/memcached --with-libevent=/usr/local/libevent/
-3）编译
-# make
-7) 安装
-# make install
+./configure --prefix=/usr/local/memcached --with-libevent=/usr/local/libevent/
+3）编译安装
+make && make install
 
 3.3 memcached启动停止脚本
 1)编写脚本
@@ -132,23 +129,22 @@ esac
 exit $RETVAL
 :wq
 
-
 2) 配置权限与开机启动
-# chmod 755 /etc/init.d/memcached
-# chkconfig --add memcached
-# chkconfig --level 35 memcached on
+chmod 755 /etc/init.d/memcached && \
+chkconfig --add memcached && \
+chkconfig --level 35 memcached on
 
 3.4 配置防火墙
 1）在防火墙规则中加入11211端口
-# vi /etc/sysconfig/iptables
+vi /etc/sysconfig/iptables
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 11211 -j ACCEPT 
 2)重启防火墙
-# service iptables restart
+service iptables restart
 
 
 3.5 启动停止
 1）启动
-# service memcached start
+service memcached start
 实际上调用了一下命令:
 /usr/local/memcached/bin/memcached -d -m 64 -u root -l 192.168.224.128 
 -p 11211 -c 1024 -P /usr/local/memcached/memcached.pid
@@ -172,21 +168,21 @@ service memcached status
 service memcached restart
 
 
-
 安装PHP的memcache扩展
 #wget http://pecl.php.net/get/memcache-2.2.7.tgz
-# tar zxf memcache-2.2.7.tgz
-# cd memcache-2.2.7
-# find / -name phpize
+
+cd /tmp && tar zxf memcache-2.2.7.tgz
+cd memcache-2.2.7
+find / -name phpize
 /usr/local/php/bin/phpize
-# /usr/local/php/bin/phpize //执行，如果有输出结果则可以执行扩展
+# /usr/local/php/bin/phpize		#执行，如果有输出结果则可以执行扩展
 Configuring for:
 PHP Api Version: 20100412
 Zend Module Api No: 20100525
 Zend Extension Api No: 220100525
-# ./configure --enable-memcache --with-php-config=/usr/local/php/bin/php-config --with-zlib-dir
-# make
-# make install
+./configure --enable-memcache --with-php-config=/usr/local/php/bin/php-config --with-zlib-dir && \
+make && make install
+
 需要在
 vi /etc/php.ini
 /msql.so

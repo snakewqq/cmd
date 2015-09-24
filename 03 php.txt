@@ -1,34 +1,35 @@
 编译安装php 5.5.9，fastCGI模式
-yum -y install gcc gcc-c++ libxml2 libxml2-devel autoconf libjpeg libjpeg-devel libpng libpng-devel gd libc-client-devel
-yum -y install bzip2 bzip2-devel curl curl-devel freetype freetype-devel zlib zlib-devel glibc glibc-devel glib2 glib2-devel 
+yum -y install gcc gcc-c++ libxml2 libxml2-devel autoconf libjpeg libjpeg-devel libpng libpng-devel gd libc-client-devel && \
+yum -y install bzip2 bzip2-devel curl curl-devel freetype freetype-devel zlib zlib-devel glibc glibc-devel glib2 glib2-devel && \
 yum -y install openldap openldap-devel nss_ldap openldap-clients openldap-servers
 
 # cd /tmp
-# 本地上传php-5.5.9.tar.gz jpegsrc.v8d.tar.gz libmcrypt-2.5.8.tar.gz
+# 本地上传
+put php-5.5.9.tar.gz jpegsrc.v8d.tar.gz libmcrypt-2.5.8.tar.gz
 
 #安装 jpeg
-tar zxvf jpegsrc.v8d.tar.gz
-cd jpeg-8d
-./configure -enable-shared -enable-static
-make && make install clean
-cd ..
+cd /tmp && \
+tar zxvf jpegsrc.v8d.tar.gz && \
+cd jpeg-8d && \
+./configure -enable-shared -enable-static && \
+make && make install clean && \
 
 安装libmcrypt
-tar zxvf libmcrypt-2.5.8.tar.gz
-cd libmcrypt-2.5.8
-./configure
+cd /tmp && \
+tar zxvf libmcrypt-2.5.8.tar.gz && \
+cd libmcrypt-2.5.8 && \
+./configure && \
 make && make install
-cd ..
 
 安装php
-tar zvxf php-5.5.9.tar.gz
-cd php-5.5.9
-mkdir -p /usr/local/php
-
+cd /tmp && \
+tar zvxf php-5.5.9.tar.gz && \
+cd php-5.5.9 && \
+mkdir -p /usr/local/php && \
 cp -frp /usr/lib64/libldap* /usr/lib/
 
 percona 5.6软链接问题
-ln -s /usr/local/mysql/lib/libperconaserverclient.so.18 /usr/lib64/libperconaserverclient.so
+ln -s /usr/local/mysql/lib/libperconaserverclient.so.18 /usr/lib64/libperconaserverclient.so && \
 ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.so
 
 ./configure --prefix=/usr/local/php \
@@ -72,11 +73,10 @@ ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.s
 如果服务器内存小于等于1G，需要加上选项:
 --disable-fileinfo   
 
-make -j8
-make install
+make -j8 && make install
 
-cp php.ini-production /usr/local/php/etc/php.ini
-rm -rf /etc/php.ini
+cp php.ini-production /usr/local/php/etc/php.ini && \
+rm -rf /etc/php.ini && \
 ln -s /usr/local/php/etc/php.ini /etc/php.ini
 
 vi /etc/php.ini
@@ -92,13 +92,14 @@ pid = run/php-fpm.pid
 :wq
 
 设置 php-fpm开机启动
-cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
-chmod +x /etc/init.d/php-fpm
-chkconfig --add php-fpm
-chkconfig php-fpm on
-groupadd www       
-useradd www -g www
+cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm && \
+chmod +x /etc/init.d/php-fpm && \
+chkconfig --add php-fpm && \
+chkconfig php-fpm on && \
+groupadd www && \
+useradd www -g www && \
 service php-fpm start
+
 vi /etc/sysconfig/iptables
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 9000 -j ACCEPT 
 :wq

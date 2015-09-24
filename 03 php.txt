@@ -12,7 +12,7 @@ cd /tmp && \
 tar zxvf jpegsrc.v8d.tar.gz && \
 cd jpeg-8d && \
 ./configure -enable-shared -enable-static && \
-make && make install clean && \
+make && make install clean
 
 安装libmcrypt
 cd /tmp && \
@@ -109,7 +109,7 @@ service iptables restart
 vi /etc/profile
 export PATH=$PATH:/usr/local/php/bin
 :wq
-source /etc/source
+source /etc/profile
 php --version
 
 #apache验证

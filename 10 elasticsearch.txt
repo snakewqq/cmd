@@ -1,6 +1,6 @@
 本地上传elasticsearch-1.5.2.tar.gz
-cd /tmp
-tar zxvf elasticsearch-1.5.2.tar.gz
+cd /tmp && \
+tar zxvf elasticsearch-1.5.2.tar.gz && \
 mv elasticsearch-1.5.2 /usr/local/elasticsearch
 
 增加es内存
@@ -8,7 +8,7 @@ vi /etc/profile
 ES_HEAP_SIZE=4g
 export ES_HEAP_SIZE
 :wq
-source /etc/profile
+source /etc/profile && \
 echo $ES_HEAP_SIZE
 
 开启防火墙
@@ -27,7 +27,7 @@ bootstrap.mlockall: true
 
 修改最大文件打开数
 ulimit -a
-vi /etc/security/limits.conf
+vim /etc/security/limits.conf
 *　　soft　　nofile　　65536
 *　　hard　　nofile　　65536
 :wq
@@ -35,15 +35,14 @@ exit
 ulimit -a
 
 安装插件
-cd /usr/local/elasticsearch/bin
-./plugin -install mobz/elasticsearch-head
-http://localhost:9200/_plugin/head/
-
+cd /usr/local/elasticsearch/bin && \
+./plugin -install mobz/elasticsearch-head && \
 ./plugin -i elasticsearch/marvel/latest
 
+http://localhost:9200/_plugin/head/
+
 后台启动es
-cd /usr/local/elasticsearch/bin
-./elasticsearch -d
+/usr/local/elasticsearch/bin/elasticsearch -d
 
 查看状态
 curl http://localhost:9200/_nodes/process?pretty

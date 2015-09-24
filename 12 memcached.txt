@@ -172,8 +172,9 @@ service memcached restart
 cd /tmp && tar zxvf memcache-2.2.7.tgz && \
 cd memcache-2.2.7 && \
 find / -name phpize && \
+
 /usr/local/php/bin/phpize
-/usr/local/php/bin/phpize && \		#执行，如果有输出结果则可以执行扩展
+/usr/local/php/bin/phpize		#执行，如果有输出结果则可以执行扩展
 
 Configuring for:
 PHP Api Version: 20100412

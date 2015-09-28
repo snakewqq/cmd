@@ -1,17 +1,17 @@
 本地上传percona-server-5.6.25-73.1.tar.gz
 
 安装mysql
-yum -y install git gcc gcc-c++ make cmake autoconf automake
+yum -y install git gcc gcc-c++ make cmake autoconf automake && \
 yum -y install bison bison-devel zlib* fiex* libxml* openssl openssl-devel readline-devel libaio-devel ncurses ncurses-devel libmcrypt* libtool-ltdl-devel*
 
-cd /tmp
-tar zxvf percona-server-5.6.25-73.1.tar.gz
+cd /tmp && \
+tar zxvf percona-server-5.6.25-73.1.tar.gz && \
 cd percona-server-5.6.25-73.1
 
-groupadd mysql       
-useradd mysql -g mysql -s /sbin/nologin
-mkdir -p /data/mysql/logs
-chown -R mysql:mysql /data/mysql  
+groupadd mysql && \
+useradd mysql -g mysql -s /sbin/nologin && \
+mkdir -p /data/mysql/logs && \
+chown -R mysql:mysql /data/mysql
 
 cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
 	-DMYSQL_DATADIR=/data/mysql/ \
@@ -28,17 +28,16 @@ cmake . -DCMAKE_INSTALL_PREFIX=/usr/local/mysql \
 	-DWITH_PARTITION_STORAGE_ENGINE=1 \
 	-DEXTRA_CHARSETS=all \
 	-DDEFAULT_CHARSET=utf8 \
-	-DDEFAULT_COLLATION=utf8_general_ci 
+	-DDEFAULT_COLLATION=utf8_general_ci
 
 多次编译需删除
 rm -rf CMakeCache.txt
 	
-make -j8
-make install
+make -j8 && make install
 
-cd /usr/local/mysql
-chown mysql.mysql -R .          
-rm -rf /etc/my.cnf                
+cd /usr/local/mysql && \
+chown mysql.mysql -R . && \
+rm -rf /etc/my.cnf
 
 取消mysql严格模式
 SET GLOBAL sql_mode=''
@@ -56,13 +55,14 @@ datadir=/data/mysql
 max_allowed_packet=32M
 :wq
 
-chmod 755 scripts/mysql_install_db        
-scripts/mysql_install_db  --user=mysql  --basedir=/usr/local/mysql --datadir=/data/mysql/ --no-defaults
-cp support-files/mysql.server /etc/init.d/mysqld
-chmod 755 /etc/init.d/mysqld
-chkconfig --add mysqld
-chkconfig mysqld on
+chmod 755 scripts/mysql_install_db && \
+scripts/mysql_install_db  --user=mysql  --basedir=/usr/local/mysql --datadir=/data/mysql/ --no-defaults && \
+cp support-files/mysql.server /etc/init.d/mysqld && \
+chmod 755 /etc/init.d/mysqld && \
+chkconfig --add mysqld && \
+chkconfig mysqld on && \
 service mysqld start
+
 vi /etc/sysconfig/iptables
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 3306 -j ACCEPT 
 :wq
@@ -92,9 +92,9 @@ mysql> select User,Password,Host from user;
 mysql> exit;
 至此，mysql安装已经全部结束。
 
-
-#mysql slave config
+======= # mysql slave config # ======================================================
 vi /etc/my.cnf
+
 [mysqld]
 server-id=2
 log-bin=mysqlslave-bin.log

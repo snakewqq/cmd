@@ -1,21 +1,22 @@
-yum -y install make apr* autoconf automake curl-devel gcc gcc-c++ zlib-devel openssl openssl-devel pcre-devel gd kernel 
-yum -y install keyutils patch perl kernel-headers compat* mpfr cpp glibc libgomp libstdc++-devel ppl cloog-ppl 
-yum -y install keyutils-libs-devel libcom_err-devel libsepol-devel libselinux-devel krb5-devel zlib-devel libXpm* freetype 
+yum -y install make apr* autoconf automake curl-devel gcc gcc-c++ zlib-devel openssl openssl-devel pcre-devel gd kernel && \
+yum -y install keyutils patch perl kernel-headers compat* mpfr cpp glibc libgomp libstdc++-devel ppl cloog-ppl && \
+yum -y install keyutils-libs-devel libcom_err-devel libsepol-devel libselinux-devel krb5-devel zlib-devel libXpm* freetype && \
 yum -y install libjpeg* libpng* php-common php-gd ncurses* libtool* libxml2 libxml2-devel patch
 
 本地上传nginx-1.4.6.tar.gz pcre-8.31.tar.gz
 
 #开始安装 Nginx
 #安装Nginx所需的pcre库
-tar zxvf pcre-8.31.tar.gz
-cd pcre-8.31
-./configure --prefix=/usr/local/pcre
+cd /tmp && \
+tar zxvf pcre-8.31.tar.gz && \
+cd pcre-8.31 && \
+./configure --prefix=/usr/local/pcre && \
 make && make install clean
-cd ..
 
 安装 Nginx1.4.6
-tar zxvf nginx-1.4.6.tar.gz
-cd nginx-1.4.6
+cd /tmp && \
+tar zxvf nginx-1.4.6.tar.gz && \
+cd nginx-1.4.6 && \
 ./configure --user=www \
 --group=www \
 --prefix=/usr/local/nginx \
@@ -23,13 +24,9 @@ cd nginx-1.4.6
 --with-http_ssl_module \
 --with-pcre=/tmp/pcre-8.31
 
-make -j8 
-make install clean
-cd ..
-
-# chmod +w /usr/local/nginx/logs
-# chown -R www:www /usr/local/nginx/logs
-
+make -j8 && make install clean && \
+chmod +w /usr/local/nginx/logs && \
+chown -R www:www /usr/local/nginx/logs && \
 mkdir -p /usr/local/nginx/conf/sites
 
 #创建 Nginx 配置文件
@@ -234,8 +231,8 @@ esac
 chmod +x /etc/init.d/nginx
 
 # 添加 Nginx 为系统服务（开机自动启动）
-chkconfig --add nginx
-chkconfig nginx on
+chkconfig --add nginx && \
+chkconfig nginx on && \
 service nginx start
 
 vi /etc/sysconfig/iptables

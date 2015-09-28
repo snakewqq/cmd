@@ -36,7 +36,7 @@ HOSTNAME=web1
 hostname web1        #立即生效
 
 禁用selinux
-# vi /etc/sysconfig/selinux
+vi /etc/sysconfig/selinux
 SELINUX=disabled
 #SELINUXTYPE=targeted
 :wq

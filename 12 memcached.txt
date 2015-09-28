@@ -11,11 +11,12 @@ Memcached 是一个高性能的分布式内存对象缓存系统，用于动态W
 3)本次安装用到的所有软件下载地址（安装环境为CentOS-6.5） 
 http://download.csdn.net/detail/clevercode/8654863
 
+put libevent-1.4.14b-stable.tar.gz  memcached-1.4.5.tar.gz  memcache-2.2.7.tgz
 
 3 Memcached安装
 3.1 安装libevent
 1）确保先进行了安装linux必备常用库（Linux中必备常用支持库的安装：http://blog.csdn.net/clevercode/article/details/45438401）。解压
-# cd /usr/local/src/memcached
+# cd /tmp
 # tar -zxvf libevent-1.4.14b-stable.tar.gz
 # cd libevent-1.4.14b-stable
 2）配置

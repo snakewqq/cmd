@@ -84,28 +84,38 @@ http {
 :wq
 
 添加test站点
+mkdir -p /data/www/test
 vi /usr/local/nginx/conf/sites/test.conf
 server {
-	listen   80; ## listen for ipv4; this line is default and implied
+        listen   80; ## listen for ipv4; this line is default and implied
 
-    root /home/www/test;
-    index index.html index.htm index.php;
-    server_name localhost;
-	
-	access_log /usr/local/nginx/logs/vesta.access.log;
-    error_log /usr/local/nginx/logs/vesta.error.log warn;
+        root /data/www/test;
+        index index.html index.htm index.php;
+        server_name localhost;
 
-    #error_page 404 /404.html;
+        access_log /usr/local/nginx/logs/vesta.access.log;
+        error_log /usr/local/nginx/logs/vesta.error.log warn;
 
-    # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
-    #
-    location ~ \.php$ {
-		fastcgi_pass 127.0.0.1:9000;
-		fastcgi_index index.php;
-		fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-		include fastcgi_params;
-	}
+        #error_page 404 /404.html;
+
+        # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+        #
+        location ~ \.php$ {
+                fastcgi_pass 127.0.0.1:9000;
+                fastcgi_index index.php;
+                fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                include fastcgi_params;
+        }
 }
+:wq
+cd /data/www/test
+vi index.php
+<?php
+phpinfo();
+?>
+:wq
+
+chown -R www.www /data/www
 
 添加ndb站点
 vi /usr/local/nginx/conf/sites/ndb.conf

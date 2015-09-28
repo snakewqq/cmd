@@ -19,6 +19,10 @@ yum -y install python python-setuptools
 #root用户运行
 # make prefix=/usr/local all
 # make prefix=/usr/local install  
+vi /etc/profile
+export PATH=$PATH:/usr/local/bin
+:wq
+source /etc/profile
 查看版本号：git --version
 git version 1.9.5
 

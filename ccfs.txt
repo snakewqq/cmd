@@ -1,0 +1,6 @@
+电话会议系统（ccfs）目前有两个环境：测试环境和生产环境   （以前只有生产环境，所有ndb测试环境都连的生产环境的ccfs）
+对应关系是，ndb无论本地还是qa （qa1 qa2） uat 全部连的是192.168.5.72上的ccfs系统，当然本地可以自己搭建ccfs系统。
+未来ccfs的生产环境会布置在192.168.5.68上，与之对应的是ndb的生产环境
+目前72的ccfs后台地址是http://test.backend.conference.capvision.com     admin   111111
+ccfs的api地址是test.api.conference.capvision.com
+搭建ccfs以后需要在后台创建一个application token, 然后将这个token和密码填到对应的ndb系统中

@@ -1,0 +1,22 @@
+﻿Capvision.com.cn  
+www.sundns.com  
+username: bji@capvisionpartners.com  
+password:  capvision11rocks
+
+A
+capvision.com.cn. 152.101.179.106
+autodiscover.capvision.com.cn. 152.101.179.106
+expert.capvision.com.cn. 106.187.55.228
+mail.capvision.com.cn. 152.101.179.106
+old.capvision.com.cn. 61.152.239.188
+owa.capvision.com.cn. 152.101.179.106
+survey.capvision.com.cn. 114.80.78.52
+www.capvision.com.cn. 42.120.20.74
+
+mx
+cdn.corp-email.cn 优先级5
+cdn.corpemail.net 优先级10
+
+文本记录
+mail.capvision.com.cn.
+"v=spf1 mx include:mail.capvision.com.cn ~all"

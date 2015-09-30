@@ -1,2 +1,0 @@
-É¾³ıµÄsql  (ÈíÉ¾³ı)
-Update ndb_project_task set status = 0 where id = 320694

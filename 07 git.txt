@@ -237,8 +237,9 @@ Commit 到本地Git
 
 如果new-branch分支成熟了，则可以合并进master
 #git checkout master
-#git merge new-branch
-#git branch
+#git merge new-branch -y --message "merge new-branch to master"
+#git merge --no-ff new-branch
+#git branch -a
 
 * master
  new-banch

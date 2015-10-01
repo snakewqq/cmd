@@ -32,8 +32,8 @@ percona 5.6软链接问题
 ln -s /usr/local/mysql/lib/libperconaserverclient.so.18 /usr/lib64/libperconaserverclient.so && \
 ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.so
 
+# 安装apache需增加  --with-apxs2=/usr/local/apache/bin/apxs \
 ./configure --prefix=/usr/local/php \
-	--with-apxs2=/usr/local/apache/bin/apxs \
 	--with-libxml-dir=/usr/include/libxml2 \
 	--with-config-file-path=/usr/local/php/etc/ \
 	--with-mysql=mysqlnd  \

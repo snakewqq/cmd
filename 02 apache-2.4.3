@@ -1,0 +1,164 @@
+yum -y install openssl-devel
+
+cd /tmp
+本地上传httpd-2.4.3.tar.gz apr-1.4.6.tar.gz apr-util-1.5.1.tar.gz pcre-8.31.tar.gz
+tar zxvf pcre-8.31.tar.gz
+tar zxvf apr-1.4.6.tar.gz
+tar zxvf apr-util-1.5.1.tar.gz 
+tar zxvf httpd-2.4.3.tar.gz
+
+cd pcre-8.31 
+./configure --prefix=/usr/local/pcre
+make && make install
+
+cd /tmp
+cp -r /tmp/apr-1.4.6 /tmp/httpd-2.4.3/srclib/apr
+cp -r /tmp/apr-util-1.5.1 /tmp/httpd-2.4.3/srclib/apr-util
+cd httpd-2.4.3
+./configure --prefix=/usr/local/apache \
+	--enable-dav \
+	--enable-so \
+	--enable-maintainer-mode \
+	--enable-rewrite \
+	--enable-deflate=shared \
+	--enable-ssl=shared \
+	--enable-expires=shared \
+	--enable-headers=shared \
+	--enable-static-support \
+	--with-included-apr \
+	--with-mpm=prefork \
+	--enable-cache \
+	--enable-file-cache \
+	--with-pcre=/usr/local/pcre
+make && make install
+cp /usr/local/apache/bin/apachectl /etc/init.d/httpd
+vi /etc/init.d/httpd
+在#!/bin/sh 下面加上这两行
+# chkconfig: 345 90 90
+# description: Apache
+:wq 
+chkconfig --add httpd
+chkconfig httpd on
+
+vi /usr/local/apache/conf/httpd.conf
+Listen 8000
+ServerName localhost:8000
+User www
+Group www 
+:wq
+
+service httpd start
+vi /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 8000 -j ACCEPT
+:wq 
+service iptables restart 
+
+# groupadd www
+# useradd www -g www -s /sbin/nologin
+# service httpd restart
+# /usr/local/apache/bin/httpd -v
+# /usr/local/apache/bin/httpd -M
+至此apache安装结束。
+
+#apache验证
+cd /usr/local/apache/htdocs
+vi index.php
+<?php
+phpinfo();
+?>
+:wq!
+# chown -R www.www /usr/local/apache/htdocs
+#配置apache以module方式使用php 
+
+vi /usr/local/apache/conf/httpd.conf 
+#ServerRoot "/usr/local/apache"
+#ServerAdmin you@example.com
+
+#<Directory />
+#    AllowOverride none
+#    Require all denied
+#</Directory>
+
+<IfModule mime_module> 
+    #此处添加php handler 
+    AddType application/x-httpd-php .php .phtml
+    AddType application/x-httpd-php-source .phps
+    PHPIniDir "/etc" 
+</IfModule>
+DirectoryIndex index.html index.php
+
+#DocumentRoot "/usr/local/apache/htdocs"
+#<Directory "/usr/local/apache/htdocs">
+    #
+    # Possible values for the Options directive are "None", "All",
+    # or any combination of:
+    #   Indexes Includes FollowSymLinks SymLinksifOwnerMatch ExecCGI MultiViews
+    #
+    # Note that "MultiViews" must be named *explicitly* --- "Options All"
+    # doesn't give it to you.
+    #
+    # The Options directive is both complicated and important.  Please see
+    # http://httpd.apache.org/docs/2.4/mod/core.html#options
+    # for more information.
+    #
+    #Options FollowSymLinks
+
+    #
+    # AllowOverride controls what directives may be placed in .htaccess files.
+    # It can be "All", "None", or any combination of the keywords:
+    #   Options FileInfo AuthConfig Limit
+    #
+    #AllowOverride All
+
+    #
+    # Controls who can get stuff from this server.
+    #
+    #Require all granted
+#</Directory>
+
+#禁止文件列表功能 
+#Options Indexes FollowSymLinks 
+Options FollowSymLinks
+
+<Directory "/usr/local/apache/cgi-bin">
+    AllowOverride None
+    Options +ExecCGI -MultiViews +SymLinksIfOwnerMatch
+    Order allow,deny
+    Allow from all
+</Directory>
+
+#允许配置重写 
+#AllowOverride None 
+AllowOverride All
+
+Include conf/extra/httpd-vhosts.conf
+:wq 
+
+vi /usr/local/apache/conf/extra/httpd-vhosts.conf
+#
+#<VirtualHost *:80>
+#    ServerAdmin webmaster@dummy-host.example.com
+#    DocumentRoot "/usr/local/apache/docs/dummy-host.example.com"
+#    ServerName dummy-host.example.com
+#    ServerAlias www.dummy-host.example.com
+#    ErrorLog "logs/dummy-host.example.com-error_log"
+#    CustomLog "logs/dummy-host.example.com-access_log" common
+#</VirtualHost>
+
+<VirtualHost *:8000>
+    ServerAdmin wliu@capvision.com
+    DocumentRoot "/data/www/moodle"
+    ServerName training.capvision.com
+    ErrorLog "logs/training-error_log"
+    CustomLog "logs/training-access_log" common
+    <Directory "/data/www/moodle">
+        Options FollowSymLinks
+        AllowOverride None
+        allow from all
+    </Directory>
+</VirtualHost>
+:wq
+
+
+# service httpd restart
+# 访问 http://192.168.203.80/index.php

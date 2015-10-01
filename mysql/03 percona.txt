@@ -120,24 +120,38 @@ mysql> flush tables with read lock;
 
 查看主数据库的状态(并记录下File字段和Position字段的值，在配置从服务器时有用到)
 mysql> show master status\G
-File: mysqlmaster-bin.000002
-         Position: 619
+*************************** 1. row ***************************
+             File: mysqlmaster-bin.000021
+         Position: 206457672
+     Binlog_Do_DB: 
+ Binlog_Ignore_DB: 
+Executed_Gtid_Set: 
+1 row in set (0.00 sec)
 
 exit
 		 
 创建主数据库的快照文件
 cd /tmp/
-mysqldump -uroot -p --all-databases --triggers --routines --events >> /tmp/all.sql
+innobackupex --user=admin --password=admin1234 --host=127.0.0.1 /tmp/backup --no-timestamp
 
 解锁主数据库的锁表操作
 mysql> unlock tables;
 
 在从数据库服务器上导入第七步创建的快照文件到从数据库中
-scp all.sql root@192.168.5.182:/tmp/
-mysql -uroot -p  < /tmp/all.sql
+scp -r backup root@192.168.5.182:/tmp/
+
+切换到182
+innobackupex --user=admin --password=admin1234 --host=127.0.0.1 --apply-log --use-memory=2G /tmp/backup
+
+service mysqld stop
+rm -rf /data/mysql
+mv /tmp/backup /data/mysql
+chown -R mysql.mysql /data/mysql
+service mysqld start
+
 
 在从数据库服务器上设置主数据库服务器向从数据库服务器同步
-mysql> change master to master_host = '192.168.5.181',master_user='repl',master_password='repl4321',master_log_file='mysqlmaster-bin.000001',master_log_pos=399;
+mysql> change master to master_host = '192.168.5.181',master_user='repl',master_password='repl4321',master_log_file='mysqlmaster-bin.000021',master_log_pos=206457672;
 
 启动从数据库复制线程
 mysql> start slave;

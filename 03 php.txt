@@ -33,6 +33,7 @@ ln -s /usr/local/mysql/lib/libperconaserverclient.so.18 /usr/lib64/libperconaser
 ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.so
 
 ./configure --prefix=/usr/local/php \
+	--with-apxs2=/usr/local/apache/bin/apxs \
 	--with-libxml-dir=/usr/include/libxml2 \
 	--with-config-file-path=/usr/local/php/etc/ \
 	--with-mysql=mysqlnd  \
@@ -111,36 +112,5 @@ export PATH=$PATH:/usr/local/php/bin
 :wq
 source /etc/profile
 php --version
-
-#apache验证
-# cd /usr/local/apache/htdocs
-# vi index.php
-<?php
-phpinfo();
-?>
-:wq!
-# chown -R www.www /usr/local/apache/htdocs
-#配置apache以module方式使用php 
-
-# vi /usr/local/apache/conf/httpd.conf 
-<IfModule mime_module> 
-    #此处添加php handler 
-    AddType application/x-httpd-php .php .phtml
-    AddType application/x-httpd-php-source .phps
-    PHPIniDir "/etc" 
-</IfModule>
-DirectoryIndex index.html index.php
-
-#禁止文件列表功能 
-#Options Indexes FollowSymLinks 
-Options FollowSymLinks
-
-#允许配置重写 
-#AllowOverride None 
-AllowOverride All
-:wq 
-
-# service httpd restart
-# 访问 http://192.168.203.80/index.php
 
 #至此php安装完成

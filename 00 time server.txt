@@ -1,0 +1,47 @@
+现在需要自己搭建一台CentOS时间服务器来调整
+
+升级安装ntp时间包
+# yum -y install ntp
+具体配置修改了，这里我再查看配置文件，让注销的不显示
+# grep -v "^#" >/etc/ntp.conf
+
+restrict default kod nomodify notrap nopeer noquery
+restrict -6 default kod nomodify notrap nopeer noquery
+
+restrict 127.0.0.1
+restrict 192.168.5.0   mask 255.255.255.0    #这行是新添加的，让这个地址的能使用时间服务器，相当于acl控制
+restrict 192.168.3.0   mask 255.255.255.0
+restrict -6 ::1
+
+server ntp.fudan.edu.cn prefer #新添加了一个优先，prefer是表示优先的意思
+server time.nist.gov iburst
+
+server  127.127.1.0     # local clock
+fudge   127.127.1.0 stratum 10
+
+driftfile /var/lib/ntp/drift
+keys /etc/ntp/keys
+
+启动服务
+
+service ntpd start
+
+netstat -tlunp
+
+vi /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m udp -p udp --dport 123 -j ACCEPT
+:wq
+
+service iptables restart
+
+查看123udp端口是否启动起来，现在我们可以登陆客户机器同步了
+
+
+[root@localhost ~]# ntpdate 192.168.5.176
+
+16 Jun 18:25:53 ntpdate[10535]: step time server 192.168.10.231 offset 1538.540766 sec
+
+hwclock -w
+
+查看时间服务器自身同步状态：
+watch ntpq -p    

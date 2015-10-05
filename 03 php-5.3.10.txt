@@ -6,7 +6,7 @@ yum -y install openldap openldap-devel nss_ldap openldap-clients openldap-server
 # cd /usr/software
 # wget http://www.ijg.org/files/jpegsrc.v8d.tar.gz
 # wget http://sourceforge.net/projects/mcrypt/files/Libmcrypt/2.5.8/libmcrypt-2.5.8.tar.gz/download
-# wget http://cn2.php.net/get/php-5.4.8.tar.gz/from/this/mirror
+# wget http://cn2.php.net/get/php-5.3.10.tar.gz/from/this/mirror
  
 
 #安装 jpeg
@@ -22,8 +22,8 @@ yum -y install openldap openldap-devel nss_ldap openldap-clients openldap-server
 # make && make install
 # cd ..
 #安装php
-# tar zvxf php-5.4.8.tar.gz
-# cd php-5.4.8
+# tar zvxf php-5.3.10.tar.gz
+# cd php-5.3.10
 
 cp -frp /usr/lib64/libldap* /usr/lib/
 

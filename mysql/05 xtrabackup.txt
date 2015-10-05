@@ -17,6 +17,10 @@ innobackupex --user=admin --password=123456 --host=127.0.0.1 --include='test.*|p
 innobackupex --user=admin --password=123456 --host=127.0.0.1 --apply-log --use-memory=2G /tmp/backup
 
 innobackupex --user=admin --password=123456 --host=127.0.0.1 --copy-back /path/to/BACKUP-DIR
+
+单个数据库恢复
+innobackupex --user=admin --password=123456 --host=127.0.0.1 --apply-log --export --use-memory=2G /tmp/backup
+
  
 Warning: Using unique option prefix open_files instead of open_files_limit is deprecated and will be removed in a future release. Please use the full name instead.
 innobackupex: Created backup directory /data/backup/2014-06-30_09-14-48

@@ -10,6 +10,9 @@ innobackupex --user=admin --password=123456 --host=127.0.0.1 /tmp/backup --no-ti
 单个数据库备份
 innobackupex --user=admin --password=123456 --host=127.0.0.1 --databases=test --defaults-file=/etc/my.cnf  /tmp/backup --no-timestamp
 
+单个数据库备份
+innobackupex --user=admin --password=123456 --host=127.0.0.1 --include='test.*|pms.*' --defaults-file=/etc/my.cnf  /tmp/backup --no-timestamp
+
 完全恢复
 innobackupex --user=admin --password=123456 --host=127.0.0.1 --apply-log --use-memory=2G /tmp/backup
 
@@ -94,3 +97,21 @@ Xtrabackup对备份的数据文件支持“流”功能，即可以将备份的�
 innobackupex --user=root --password=123456 --stream=tar  /data/backup | gzip > /data/backup/`date +%F_%H-%M-%S`.tar.gz
 
 本文出自 “枫林晚” 博客，请务必保留此出处http://fengwan.blog.51cto.com/508652/1432347
+
+
+ubuntu 12.04下安装xtrabackup
+查看ubuntu版本
+cat /etc/issue
+
+apt-key adv --keyserver keys.gnupg.net --recv-keys 1C4CBDCDCD2EFD2A
+vi /etc/apt/sources.list
+deb http://repo.percona.com/apt precise main
+deb-src http://repo.percona.com/apt precise main
+:wq
+注：precise是ubuntu 12.04代号，14.04代号为Trusty，Ubuntu版本不同需替换
+apt-get update
+apt-cache search percona
+apt-get -y install percona-xtrabackup
+xtrabackup --help
+
+

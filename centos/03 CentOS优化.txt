@@ -7,6 +7,28 @@ vi /etc/security/limits.conf
 exit
 ulimit -a
 
+设置vim
+yum -y install vim
+mv /bini /bini_old
+ln -s /usr/binim /bini
+
+vi /etc/profile
+export TERM=xterm-color
+:wq
+
+vi /etc/bashrc
+export pyut=/home/capvision/pyut
+export PATH=$pyut:$PATH
+export EDITOR=/usr/binim
+:wq
+
+source /etc/bashrc
+
+vi ~/.vimrc
+5.133 /home/capvision/.vimrc  to ~/.vimrc
+
+source /etc/profile
+
 关闭不必要的服务
 # chkconfig --list |grep '3:on'
 

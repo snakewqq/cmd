@@ -1,0 +1,85 @@
+高负载PHP-FPM调优
+
+[日期：2013-07-06]	来源：zrwm.com  作者：Linux	[字体：大 中 小]
+高负载PHP调优
+
+针对PHP的Linux调优
+
+调整文件描述符限制
+
+# ulimit -n 1000000
+# vi /etc/security/limits.conf
+# Setting Shell Limits for File Descriptors
+*  soft nofile 1000000
+*  hard nofile 1000000
+禁止PHP代码文件所在分区的文件系统访问时间更新
+
+# vi /etc/fstab
+比如PHP代码所在分区:
+
+/dev/sdb1   ext4    errors=remount-ro  0  1
+修改为:
+
+/dev/sdb1   ext4    noatime,nodiratime,errors=remount-ro  0  1
+将临时文件存储到tmpfs
+
+在需要处理大量的小图片(比如:用户头像)上传的时候,使用内存文件系统tmpfs来存储,可以减少一些I/O的开销.但是如果用户是上传非常大的文件(比如:视频)的话,就不适合使用tmpfs.
+
+# vi /etc/fstab
+tmpfs                   /tmp                    tmpfs   defaults,nosuid,noatime 0 0
+PHP配置调优
+
+php.ini配置调优
+
+# vi php-app.ini
+[PHP]
+engine = On
+expose_php = Off
+
+max_execution_time = 5
+memory_limit = 256M
+error_reporting = E_ALL & ~E_DEPRECATED
+display_errors = Off
+display_startup_errors = Off
+html_errors = Off
+default_socket_timeout = 5
+
+file_uploads = On
+upload_tmp_dir = /tmp/php
+upload_max_filesize = 50M
+post_max_size = 50M
+max_file_uploads = 20
+
+date.timezone = 'Asia/Shanghai'
+注意这里设置max_execution_time只有5秒.对于一个快的web应用来说,我们真的不想要web应用里有任何长时间运行的web请求,一个web请求持续超过5秒通常意味着有些东西出了问题.我们的目标是页面响应在300-500ms(微秒)之内.
+
+PHP-FPM配置调优
+# vi php-fpm.conf
+[my_app]
+;FastCGI/PHP-FPM使用UNIX Sockets
+listen = /data/my_app/tmp/php.sock
+listen.backlog = 300
+user = www
+group = www
+pm = dynamic
+;估算pm.max_children = (MAX_MEMORY - 500MB) / 20MB
+pm.max_children = 100
+;推荐为最大的pm.max_children的%10
+pm.start_servers = 10
+pm.min_spare_servers = 5
+pm.max_spare_servers = 15
+pm.max_requests = 1000
+pm.status_path = /php_status
+
+request_terminate_timeout = 0
+request_slowlog_timeout = 0
+slowlog = /data/my_app/logs/slow.log
+相关阅读：
+
+Nginx php-fpm出现502解决办法和调优心得 http://www.linuxidc.com/Linux/2013-01/78566.htm
+
+Nginx+PHP-FPM在两台服务器实现 http://www.linuxidc.com/Linux/2012-11/74001.htm
+
+Ubuntu 10.04配置 nginx + php-fpm 模式 http://www.linuxidc.com/Linux/2012-11/74001p2.htm
+
+Nginx&&PHP-FPM配置及优化指南（上） http://www.linuxidc.com/Linux/2012-07/65732.htm

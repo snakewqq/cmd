@@ -11,11 +11,7 @@ wget http://memcached.googlecode.com/files/memcached-1.4.5.tar.gz
 3)本次安装用到的所有软件下载地址（安装环境为CentOS-6.5） 
 http://download.csdn.net/detail/clevercode/8654863
 
-<<<<<<< HEAD
 put libevent-1.4.14b-stable.tar.gz  memcached-1.4.5.tar.gz  memcache-2.2.7.tgz
-=======
-put libevent-1.4.14b-stable.tar.gz memcached-1.4.5.tar.gz memcache-2.2.7.tgz
->>>>>>> e883001c27de57e458bc889c012bacc7a5088d47
 
 3 Memcached安装
 3.1 安装libevent
@@ -173,10 +169,8 @@ service memcached restart
 #wget http://pecl.php.net/get/memcache-2.2.7.tgz
 
 cd /tmp && tar zxvf memcache-2.2.7.tgz && \
-cd memcache-2.2.7 && \
-find / -name phpize && \
+cd memcache-2.2.7
 
-/usr/local/php/bin/phpize
 /usr/local/php/bin/phpize		#执行，如果有输出结果则可以执行扩展
 
 Configuring for:
@@ -184,15 +178,17 @@ PHP Api Version: 20100412
 Zend Module Api No: 20100525
 Zend Extension Api No: 220100525
 
-./configure --enable-memcache --with-php-config=/usr/local/php/bin/php-config --with-zlib-dir && \
-make && make install
+./configure --enable-memcache --with-php-config=/usr/local/php/bin/php-config --with-zlib-dir
+make
+make install
 
 需要在
 vi /etc/php.ini
 /msql.so
+extension="/usr/local/php/lib/php/extensions/no-debug-non-zts-20090626/memcache.so"
 extension="/usr/local/php/lib/php/extensions/no-debug-non-zts-20121212/memcache.so"
 启动memcached & 重启php-fpm
-service memcached restart && \
+service memcached restart
 service php-fpm restart
 
 优点和缺点：
@@ -233,3 +229,9 @@ $mem->set(’test’, ‘Hello world!’, 0, 12);
 $val = $mem->get(’test’);
 echo $val;
 ?>
+
+报错：
+PHP Warning:  PHP Startup: Unable to load dynamic library '/usr/local/php/lib/php/extensions/no-debug-non-zts-20090626/memcache.so' - /usr/local/php/lib/php/extensions/no-debug-non-zts-20090626/memcache.so: undefined symbol: zend_new_interned_string in Unknown on line 0
+
+这是CentOS的一个bug，解决方法： 
+vi /etc/php.d/mcrypt.ini文件，将其修改为： [plain] view plaincopyprint? ; Enable mcrypt extension module extension=mcrypt.so

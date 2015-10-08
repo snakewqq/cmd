@@ -5,13 +5,13 @@
 调整文件描述符限制
 
 # ulimit -n 1000000
-# vi /etc/security/limits.conf
+# vim /etc/security/limits.conf
 # Setting Shell Limits for File Descriptors
 *  soft nofile 1000000
 *  hard nofile 1000000
 禁止PHP代码文件所在分区的文件系统访问时间更新
 
-# vi /etc/fstab
+# vim /etc/fstab
 比如PHP代码所在分区:
 
 /dev/sdb1   ext4    errors=remount-ro  0  1

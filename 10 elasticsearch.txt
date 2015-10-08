@@ -4,7 +4,7 @@ tar zxvf elasticsearch-1.5.2.tar.gz && \
 mv elasticsearch-1.5.2 /usr/local/elasticsearch
 
 增加es内存
-vi /etc/profile
+vim /etc/profile
 ES_HEAP_SIZE=4g
 export ES_HEAP_SIZE
 :wq
@@ -19,7 +19,7 @@ vi /etc/sysconfig/iptables
 service iptables restart
 
 配置参数
-vi /usr/local/elasticsearch/config/elasticsearch.yml
+vim /usr/local/elasticsearch/config/elasticsearch.yml
 cluster.name: wesley_test_cluster
 node.name: "wesley_test_node_1"
 bootstrap.mlockall: true

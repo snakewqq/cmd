@@ -45,28 +45,25 @@ SELINUX=disabled
 使用Secure CRT远程连接
 
 配置yum源
-# cd /etc/yum.repos.d/
-# mv CentOS-Base.repo CentOS-Base.repo.bak
-# mv CentOS-Debuginfo.repo CentOS-Debuginfo.repo.bak
-# mv CentOS-Media.repo CentOS-Media.repo.bak
-# mv CentOS-Vault.repo CentOS-Vault.repo.bak
-# 本地上传CentOS-Base.repo
-# yum clean all
-# yum makecache
-# yum info gcc
+cd /etc/yum.repos.d/
+rm -rf *
+本地上传CentOS-Base.repo
+yum clean all
+yum makecache
+yum info gcc
 
 安装常用命令
-# yum -y install wget traceroute bind-utils telnet net-snmp man ntpdate openssh-clients tree zip unzip mlocate openssl-devel lrzsz
+yum -y install wget traceroute bind-utils telnet net-snmp man ntpdate openssh-clients tree zip unzip mlocate openssl-devel lrzsz
 
 修改服务器时间
-# ntpdate time.nist.gov
-# date
-# 写入bios
-# hwclock -w
+ntpdate time.nist.gov
+date
+写入bios
+hwclock -w
 
-# 定时校正服务器时钟，定时与中国国家授时中心授时服务器同步
-# crontab -e
-# 加入一行：
+定时校正服务器时钟，定时与中国国家授时中心授时服务器同步
+crontab -e
+加入一行：
 */30 * * * * ntpdate time.nist.gov > /dev/null 2>&1
 :wq
 

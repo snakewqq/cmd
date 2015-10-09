@@ -17,3 +17,23 @@ export JAVA_HOME JRE_HOME PATH CLASSPATH
 
 source /etc/profile
 java -version
+
+
+安装maven
+cd /tmp
+wget http://mirrors.hust.edu.cn/apache/maven/maven-3/3.1.1/binaries/apache-maven-3.1.1-bin.tar.gz
+tar zxf apache-maven-3.1.1-bin.tar.gz
+mv apache-maven-3.1.1 /usr/local/maven
+
+vi /etc/profile
+#在适当的位置添加
+export MAVEN_HOME=/usr/local/maven
+export PATH=$PATH:$MAVEN_HOME/bin
+:wq
+
+source /etc/profile
+
+mvn -v
+
+
+

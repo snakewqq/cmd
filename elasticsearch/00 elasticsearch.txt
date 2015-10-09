@@ -1,15 +1,22 @@
-本地上传elasticsearch-1.5.2.tar.gz
-cd /tmp && \
-tar zxvf elasticsearch-1.5.2.tar.gz && \
-mv elasticsearch-1.5.2 /usr/local/elasticsearch
+通过RPM安装elasticsearch
+cd /tmp
+wget https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-1.5.2.noarch.rpm
+rpm -ivh elasticsearch-1.5.2.noarch.rpm
 
-增加es内存
-vim /etc/profile
-ES_HEAP_SIZE=4g
-export ES_HEAP_SIZE
+vi /etc/init.d/elasticsearch 
+export ES_HEAP_SIZE=2g
+export JAVA_HOME=/usr/local/java
 :wq
-source /etc/profile && \
-echo $ES_HEAP_SIZE
+
+配置参数
+vi /etc/elasticsearch/elasticsearch.yml
+cluster.name: es_test_cluster
+node.name: "node191"
+bootstrap.mlockall: true
+:wq
+
+chkconfig --add elasticsearch
+service elasticsearch start
 
 开启防火墙
 vi /etc/sysconfig/iptables
@@ -17,13 +24,6 @@ vi /etc/sysconfig/iptables
 -A INPUT -m pkttype --pkt-type multicast -j ACCEPT
 :wq
 service iptables restart
-
-配置参数
-vim /usr/local/elasticsearch/config/elasticsearch.yml
-cluster.name: wesley_test_cluster
-node.name: "wesley_test_node_1"
-bootstrap.mlockall: true
-:wq
 
 修改最大文件打开数
 ulimit -a
@@ -35,20 +35,20 @@ exit
 ulimit -a
 
 安装插件
-cd /usr/local/elasticsearch/bin && \
+cd /usr/share/elasticsearch/bin && \
 ./plugin -install mobz/elasticsearch-head && \
 ./plugin -i elasticsearch/marvel/latest
 
 http://localhost:9200/_plugin/head/
 
-后台启动es
-/usr/local/elasticsearch/bin/elasticsearch -d
+启动es
+service elasticsearch start
 
 查看状态
 curl http://localhost:9200/_nodes/process?pretty
 
 安全组件
-cd /usr/local/elasticsearch/bin
+cd /usr/share/elasticsearch/bin
 1.安装license
 ./plugin -i elasticsearch/license/latest
 2. 安装shield
@@ -65,9 +65,4 @@ new passwd:es_admin_4321
 尝试授权访问：
 curl -u es_admin -XGET 'http://localhost:9200/'
 curl -u es_admin:es_admin_4321 -XGET 'http://localhost:9200/'
-
-
-
-
-
 

@@ -1,9 +1,11 @@
 本地上传jdk-7u79-linux-x64.tar.gz
+wget https://www.reucon.com/cdn/java/jdk-7u79-linux-x64.tar.gz  
+
 cd /tmp && \
 tar zxvf jdk-7u79-linux-x64.tar.gz && \
 mv jdk1.7.0_79 /usr/local/java
 
-vi /etc/profile
+# vim /etc/profile
 
 JAVA_HOME=/usr/local/java
 JRE_HOME=/usr/local/java/jre
@@ -13,4 +15,5 @@ export JAVA_HOME JRE_HOME PATH CLASSPATH
 
 :wq
 
+source /etc/profile
 java -version

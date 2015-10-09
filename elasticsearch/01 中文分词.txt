@@ -127,7 +127,11 @@ GET /index/_search
 尝试搜索：
 POST /index/fulltext/_search  
 {
-    "query" : { "term" : { "content" : "中国" }},
+    "query": {
+        "match_phrase": {
+            "content": "大众 启停"
+        }
+    },
     "highlight" : {
         "pre_tags" : ["<tag1>", "<tag2>"],
         "post_tags" : ["</tag1>", "</tag2>"],
@@ -136,6 +140,30 @@ POST /index/fulltext/_search
         }
     }
 }
+
+POST /index/fulltext/_search  
+{
+    "query" : { 
+      "match": {
+            "content": {
+                "query": "大众 启停",
+                "slop":  1
+            }
+        }
+    },
+    "highlight" : {
+        "pre_tags" : ["<tag1>", "<tag2>"],
+        "post_tags" : ["</tag1>", "</tag2>"],
+        "fields" : {
+            "content" : {}
+        }
+    }
+}
+
+POST /index/_analyze?analyzer=ik&pretty=true&text=%e4%b8%ad%e5%9b%bd%e9%a9%bb%e6%b4%9b%e5%a4%a7%e4%bc%97%e5%90%af%e5%81%9c%e6%9d%89%e7%9f%b6%e9%a2%86%e4%ba%8b%e9%a6%86%e9%81%ad%e4%ba%9a%e8%a3%94%e7%94%b7%e5%ad%90%e6%9e%aa%e5%87%bb+%e5%ab%8c%e7%8a%af%e5%b7%b2%e8%87%aa%e9%a6%96
+
+
+POST /index/_analyze?analyzer=ik&pretty=true&text=%e5%90%af%e5%81%9c
 
 词典配置
 vi /etc/elasticsearch/ik/IKAnalyzer.cfg.xml
@@ -224,8 +252,6 @@ POST /index/_analyze?analyzer=ik&pretty=true&text=%e4%b8%ad%e5%8d%8e%e4%ba%ba%e6
       }
    ]
 }
-
-
 
 自定义字典
 config/ik/IKAnalyzer.cfg.xml

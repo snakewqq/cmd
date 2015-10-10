@@ -66,3 +66,6 @@ new passwd:es_admin_4321
 curl -u es_admin -XGET 'http://localhost:9200/'
 curl -u es_admin:es_admin_4321 -XGET 'http://localhost:9200/'
 
+解决Unassigned问题：
+curl -XPUT 'localhost:9200/_settings' \
+    -d '{"index.routing.allocation.disable_allocation": false}'

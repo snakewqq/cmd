@@ -1,0 +1,571 @@
+elasticsearch-river-jdbc
+他是一个JDBC插件，不仅仅支持mysql，还支持其他数据库
+
+初次下载地址
+cd /tmp
+wget http://xbib.org/repository/org/xbib/elasticsearch/plugin/elasticsearch-river-jdbc/1.5.0.5/elasticsearch-river-jdbc-1.5.0.5-plugin.zip
+wet  http://download.softagency.net/MySQL/Downloads/Connector-J/mysql-connector-java-5.1.35.zip
+
+二次安装
+put elasticsearch-river-jdbc-1.5.0.5-plugin.zip mysql-connector-java-5.1.35.zip
+
+安装方法：
+cd /usr/share/elasticsearch/bin
+./plugin --install jdbc --url file:///tmp/elasticsearch-river-jdbc-1.5.0.5-plugin.zip
+
+cd /tmp
+unzip mysql-connector-java-5.1.35.zip
+cp mysql-connector-java-5.1.35/mysql-connector-java-5.1.35-bin.jar /usr/share/elasticsearch/plugins/jdbc/
+
+service elasticsearch restart
+
+建立索引
+
+
+POST /mysql_table
+
+填充数据
+
+PUT /_river/mysql_table/_meta
+{
+    "type" : "jdbc",
+    "jdbc" : {
+        "driver" : "com.mysql.jdbc.Driver",
+        "url" : "jdbc:mysql://192.168.5.183:3306/ndb_qa",
+        "user" : "dev",
+        "password" : "dev",
+        "strategy": "oneshot",
+        "sql" : "SELECT * FROM ndb_view_dbsearch;"
+    },
+    "index" : {
+        "index" : "mysql_table",
+        "type" : "mysql_row",
+        "bulk_size": 500
+    }
+}
+
+Ok, my data is loaded and looks OK!
+
+Now that the prepwork is finished, here is a script that will:
+
+insert a new MAX(id) into the elastic_river_meta table
+remove the existing river
+add a new river with updated params for the ID range
+(update_index_to_latest.sh) download
+#!/bin/bash
+
+HOST='127.0.0.1'
+USER='user'
+PASS='pass'
+DB='db'
+MYSQL_CMD="mysql -u $USER -p$PASS -h$HOST $DB"
+ELST_HOST='127.0.0.1'
+CURL=/usr/bin/curl
+INDEX='mysql_table'
+
+function update_elastic_to_latest {
+  $MYSQL_CMD <<END
+INSERT INTO elastic_river_meta (next_index_id)
+SELECT MAX(index_id) from mysql_table;
+END
+}
+
+function get_latest_index_id {
+  LATEST_ID=$($MYSQL_CMD -N -B <<END
+SELECT next_index_id from elastic_river_meta order by id desc limit 1;
+END
+)
+}
+
+function get_second_latest_index_id {
+  SECOND_LATEST_ID=$($MYSQL_CMD -N -B <<END
+SELECT next_index_id from elastic_river_meta order by id desc limit 1,1;
+END
+)
+}
+
+function delete_jdbc_river {
+  $CURL -XDELETE ${ELST_HOST}:9200/_river/${INDEX}
+}
+
+function install_jdbc_river {
+  get_latest_index_id
+  get_second_latest_index_id
+  read -r -d '' _QRY <<EOF
+SELECT 
+  id as _id, 
+  domain, ts
+FROM mysql_table
+WHERE
+  id > ${SECOND_LATEST_ID}
+  AND
+  id <= ${LATEST_ID}
+EOF
+  read -r -d '' _DTA <<EOF
+{
+  "type" : "jdbc",
+  "jdbc" : {
+      "driver" : "com.mysql.jdbc.Driver",
+      "url" : "jdbc:mysql://${HOST}:3306/${DB}",
+      "user" : "${USER}",
+      "password" : "${PASS}",
+      "strategy": "oneshot",
+      "sql" : "$(echo ${_QRY})"
+  },
+  "index" : {
+      "index" : "${INDEX}",
+      "type" : "mysql_row",
+      "bulk_size": 500
+  }
+}
+EOF
+
+  $CURL -XPUT ${ELST_HOST}:9200/_river/${INDEX}/_meta -d "${_DTA}"
+
+}
+
+delete_jdbc_river
+update_elastic_to_latest
+install_jdbc_river
+You can run that script as an executable as much as you want, and it will always pull the latest data.
+
+Put it in a cronjob
+
+All that is left to do now is run this script in a cronjob. Here is an example that runs it every hour:
+
+00 *    * * *   root    /home/user/update_index_to_latest.sh > /dev/null 2>&1
+Still missing
+
+I don’t want to perform an update if the current jdbc river is still pulling data, but there is no way of getting this information from elasticsearch. As such, the best way I see to do this is by Running a query against elasticsearch to see if the LATEST\_ID exists in elasticsearch before performing an update.
+
+My script also doesn’t check if there is actually any new data. The consequences of this are minimal, insofar that what the query ends up returning is one row of the most recent id. Regardless, I would like to add this check.
+
+Posted by Randy D. Wallace Jr. Aug 27th, 2013   MySQL, elasticsearch
+
+Show Hosts Connected to MySQL »
+Comments
+
+
+Copyright © 2013 - Randy D. Wallace Jr. 
+Powered by Octopress, customized with whiterspace.
+
+put /prod_db
+
+创建索引mapping
+PUT /prod_db/_mapping/ndb_view_dbsearch
+{
+    "ndb_view_dbsearch" : {
+        "properties": {
+                "panel": {
+                    "type": "string"
+                },
+                "user_cre_ts": {
+                    "type": "long"
+                },
+                "rfrl": {
+                    "type": "string"
+                },
+                "rivtime": {
+                    "format": "dateOptionalTime",
+                    "type": "date"
+                },
+                "query": {
+                    "properties": {
+                        "match_all": {
+                            "properties": {
+                                "cnsltnt_name": {
+                                    "type": "string"
+                                },
+                                "_all": {
+                                    "type": "string"
+                                },
+                                "all": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "term": {
+                            "properties": {
+                                "_id": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "bckgrnd_txt": {
+                    "type": "string"
+                },
+                "cntry_id": {
+                    "type": "long"
+                },
+                "cmpny": {
+                    "type": "string"
+                },
+                "cnsltnt_sts_cd": {
+                    "type": "long"
+                },
+                "multi_match": {
+                    "properties": {
+                        "query": {
+                            "type": "string"
+                        },
+                        "fields": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "work_exprnc_txt_eng": {
+                    "type": "string"
+                },
+                "exprts_txt_eng": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "currency": {
+                    "type": "long"
+                },
+                "prvnc": {
+                    "type": "string"
+                },
+                "city_id": {
+                    "type": "long"
+                },
+                "subindstry_id": {
+                    "type": "string"
+                },
+                "mkt_rqst": {
+                    "type": "string"
+                },
+                "cmpny_eng": {
+                    "type": "string"
+                },
+                "rate": {
+                    "type": "long"
+                },
+                "fnctn_id": {
+                    "type": "string"
+                },
+                "pstn_eng": {
+                    "type": "string"
+                },
+                "last_upd_ts": {
+                    "type": "long"
+                },
+                "cnsltnt_type_cd": {
+                    "type": "long"
+                },
+                "work_exprnc_txt": {
+                    "type": "string"
+                },
+                "cmplt_call": {
+                    "type": "long"
+                },
+                "exprts_txt": {
+                    "type": "string"
+                },
+                "subindstry": {
+                    "type": "string"
+                },
+                "note": {
+                    "type": "string"
+                },
+                "indstry_id": {
+                    "type": "string"
+                },
+                "cnsltnt_name_eng": {
+                    "type": "string"
+                },
+                "panel_id": {
+                    "type": "string"
+                },
+                "cnsltnt_name": {
+                    "type": "string"
+                },
+                "wrngbr_txt": {
+                    "type": "string"
+                },
+                "prvnc_id": {
+                    "type": "long"
+                },
+                "fnctn": {
+                    "type": "string"
+                },
+                "calls": {
+                    "type": "long"
+                },
+                "user_cre_uid": {
+                    "type": "long"
+                },
+                "pstn": {
+                    "type": "string"
+                },
+                "indstry": {
+                    "type": "string"
+                },
+                "cnsltnt_id": {
+                    "type": "long"
+                },
+                "bckgrnd_txt_eng": {
+                    "type": "string"
+                },
+                "cntry": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "last_cntct_ts": {
+                    "type": "string"
+                },
+                "telephone": {
+                    "type": "string"
+                },
+                "call_sort_ind": {
+                    "type": "long"
+                },
+                "mobile": {
+                    "type": "string"
+                }
+            }		
+    }
+}
+
+PUT /_river/prod_db/_meta
+{
+    "type" : "jdbc",
+	"schedule": "0  */3 * * * ?",
+    "jdbc" : {
+        "driver" : "com.mysql.jdbc.Driver",
+        "url" : "jdbc:mysql://192.168.5.240:3306/ndb",
+        "user" : "elasticsearch",
+        "password" : "esadmin",
+        "sql": "SELECT cnsltnt_id as _id,cnsltnt_id,cnsltnt_name,cnsltnt_name_eng,cnsltnt_sts_cd,cnsltnt_type_cd,user_cre_uid,cntry_id,prvnc_id,city_id,indstry_id,subindstry_id,fnctn_id,panel_id,cntry,prvnc,city,rate,currency,user_cre_ts,last_cntct_ts,indstry, subindstry, cmpny, pstn,fnctn,work_exprnc_txt, cmpny_eng,pstn_eng,work_exprnc_txt_eng, calls,cmplt_call,wrngbr_txt,panel,mobile,telephone,email, rfrl,mkt_rqst,note,bckgrnd_txt,exprts_txt,bckgrnd_txt_eng,exprts_txt_eng,last_upd_ts,call_sort_ind,now() as rivtime FROM ndb_v_dbsearch",
+        "strategy": "simple",
+        "poll": "5s",
+        "autocommit": true,
+        "index": "prod_db",
+        "type": "ndb_view_dbsearch"		
+    },
+    "index" : {
+        "index" : "prod_db",
+        "type" : "mysql_row",
+        "bulk_size": 500
+    }
+}
+
+"_index": "_river",
+                "_type": "prod_db_inc",
+                "_id": "_meta",
+                "_score": 1.0,
+                "_source":
+                        {
+                            "type": "jdbc",
+                            "schedule": "0 */3 * * * ?",
+                            "jdbc": {
+                                "url": "jdbc:mysql://192.168.5.240:3306/ndb",
+                                "user": "elasticsearch",
+                                "password": "esadmin",
+                                "sql": "SELECT cnsltnt_id as _id,cnsltnt_id,cnsltnt_name,cnsltnt_name_eng,cnsltnt_sts_cd,cnsltnt_type_cd,user_cre_uid,cntry_id,prvnc_id,city_id,indstry_id,subindstry_id,fnctn_id,panel_id,cntry,prvnc,city,rate,currency,user_cre_ts,last_cntct_ts,indstry, subindstry, cmpny, pstn,fnctn,work_exprnc_txt, cmpny_eng,pstn_eng,work_exprnc_txt_eng, calls,cmplt_call,wrngbr_txt,panel,mobile,telephone,email, rfrl,mkt_rqst,note,bckgrnd_txt,exprts_txt,bckgrnd_txt_eng,exprts_txt_eng,last_upd_ts,call_sort_ind,now() as rivtime FROM ndb_v_dbsearch",
+                                "strategy": "simple",
+                                "poll": "5s",
+                                "autocommit": true,
+                                "index": "prod_db",
+                                "type": "ndb_view_dbsearch"
+                            }
+
+                        },
+
+get /prod_call_inc/_search
+
+线上配置：
+
+{
+    "took": 2,
+    "timed_out": false,
+    "_shards": {
+        "total": 1,
+        "successful": 1,
+        "failed": 0
+    },
+    "hits": {
+        "total": 16,
+        "max_score": 1.0,
+        "hits": [{
+                "_index": "_river",
+                "_type": "prod_call_inc",
+                "_id": "_meta",
+                "_score": 1.0,
+                "_source": {
+                    "type": "jdbc",
+                    "schedule": "0  */3 * * * ?",
+                    "jdbc": {
+                        "url": "jdbc:mysql://192.168.5.240:3306/ndb",
+                        "user": "elasticsearch",
+                        "password": "esadmin",
+                        "sql": "select id AS _id,id AS call_id,callingPartyNumber AS from_phone,finalCalledPartyNumber AS to_phone,dateTimeConnect AS start_ts,dateTimeDisconnect AS end_ts,fromEmployeeName AS from_user_name,toEmployeeName AS to_user_name,CRE_DT AS cre_dt,CRE_UID AS cre_uid,UPD_TS AS upd_ts,UPD_UID AS upd_uid from ndb_call_manager_log  where CRE_DT>unix_timestamp(date_add(current_timestamp, interval -1 day))  or UPD_TS>unix_timestamp(date_add(current_timestamp, interval -1 day)) ",
+                        "strategy": "simple",
+                        "poll": "5s",
+                        "autocommit": true,
+                        "index": "prod_call",
+                        "type": "call"
+                    }
+                }
+            }, {
+                "_index": "_river",
+                "_type": "prod_email_inc",
+                "_id": "_meta",
+                "_score": 1.0,
+                "_source": {
+                    "type": "jdbc",
+                    "schedule": "0  */3 * * * ?",
+                    "jdbc": {
+                        "url": "jdbc:mysql://192.168.5.240:3306/ndb",
+                        "user": "elasticsearch",
+                        "password": "esadmin",
+                        "sql": "select  id AS _id,id AS email_id,subject AS subject,`from` AS from_email,`to` AS to_email,cc AS cc_email,bcc AS bcc_email,path AS path,time AS email_ts,status AS    status,CRE_DT AS cre_dt,CRE_UID AS cre_uid,UPD_TS AS upd_ts,UPD_UID AS upd_uid from ndb_email_record  where CRE_DT>unix_timestamp(date_add(current_timestamp, interval -1 day))  or UPD_TS>unix_timestamp(date_add(current_timestamp, interval -1 day)) ",
+                        "strategy": "simple",
+                        "poll": "5s",
+                        "autocommit": true,
+                        "index": "prod_email",
+                        "type": "email"
+                    }
+                }
+            }, {
+                "_index": "_river",
+                "_type": "prod_email_full",
+                "_id": "_meta",
+                "_score": 1.0,
+                "_source": {
+                    "type": "jdbc",
+                    "jdbc": {
+                        "url": "jdbc:mysql://192.168.5.240:3306/ndb",
+                        "user": "elasticsearch",
+                        "password": "esadmin",
+                        "sql": " select  id AS _id,id AS email_id,subject AS subject,`from` AS from_email,`to` AS to_email,cc AS cc_email,bcc AS bcc_email,path AS path,time AS email_ts,status AS    status,CRE_DT AS cre_dt,CRE_UID AS cre_uid,UPD_TS AS upd_ts,UPD_UID AS upd_uid from ndb_email_record  where CRE_DT>unix_timestamp(date_add(current_timestamp, interval -10 day)) or UPD_TS>unix_timestamp(date_add(current_timestamp, interval -10 day))",
+                        "strategy": "simple",
+                        "poll": "5s",
+                        "autocommit": true,
+                        "index": "prod_email",
+                        "type": "email"
+                    }
+                }
+            }, {
+                "_index": "_river",
+                "_type": "prod_db_inc",
+                "_id": "_meta",
+                "_score": 1.0,
+                "_source":
+                        {
+                            "type": "jdbc",
+                            "schedule": "0 */3 * * * ?",
+                            "jdbc": {
+                                "url": "jdbc:mysql://192.168.5.240:3306/ndb",
+                                "user": "elasticsearch",
+                                "password": "esadmin",
+                                "sql": "SELECT cnsltnt_id as _id,cnsltnt_id,cnsltnt_name,cnsltnt_name_eng,cnsltnt_sts_cd,cnsltnt_type_cd,user_cre_uid,cntry_id,prvnc_id,city_id,indstry_id,subindstry_id,fnctn_id,panel_id,cntry,prvnc,city,rate,currency,user_cre_ts,last_cntct_ts,indstry, subindstry, cmpny, pstn,fnctn,work_exprnc_txt, cmpny_eng,pstn_eng,work_exprnc_txt_eng, calls,cmplt_call,wrngbr_txt,panel,mobile,telephone,email, rfrl,mkt_rqst,note,bckgrnd_txt,exprts_txt,bckgrnd_txt_eng,exprts_txt_eng,last_upd_ts,call_sort_ind,now() as rivtime FROM ndb_v_dbsearch",
+                                "strategy": "simple",
+                                "poll": "5s",
+                                "autocommit": true,
+                                "index": "prod_db",
+                                "type": "ndb_view_dbsearch"
+                            }
+
+                        },
+            }, {
+                "_index": "_river",
+                "_type": "qa1_db_full",
+                "_id": "_meta",
+                "_score": 1.0,
+                "_source": {
+                    "type": "jdbc",
+                    "jdbc": {
+                        "url": "jdbc:mysql://192.168.5.240:3307/ndb",
+                        "user": "admin",
+                        "password": "admin1234",
+                        "sql": "SELECT cnsltnt_id as _id,cnsltnt_id,cnsltnt_name,cnsltnt_name_eng,cnsltnt_sts_cd,cnsltnt_type_cd,user_cre_uid,cntry_id,prvnc_id,city_id,indstry_id,subindstry_id,fnctn_id,panel_id,cntry,prvnc,city,rate,currency,user_cre_ts,last_cntct_ts,indstry, subindstry, cmpny, pstn,fnctn,work_exprnc_txt, cmpny_eng,pstn_eng,work_exprnc_txt_eng, calls,cmplt_call,wrngbr_txt,panel,mobile,telephone,email, rfrl,mkt_rqst,note,bckgrnd_txt,exprts_txt,bckgrnd_txt_eng,exprts_txt_eng,last_upd_ts,call_sort_ind,now() as rivtime FROM ndb_v_dbsearch",
+                        "strategy": "simple",
+                        "autocommit": true,
+                        "index": "qa1_db",
+                        "type": "ndb_view_dbsearch"
+                    }
+                }
+            }, {
+                "_index": "_river",
+                "_type": "prod_db_full",
+                "_id": "_meta",
+                "_score": 1.0,
+                "_source": {
+                    "type": "jdbc",
+                    "jdbc": {
+                        "url": "jdbc:mysql://192.168.5.240:3306/ndb",
+                        "user": "elasticsearch",
+                        "password": "esadmin",
+                        "sql": "SELECT cnsltnt_id as _id,cnsltnt_id,cnsltnt_name,cnsltnt_name_eng,cnsltnt_sts_cd,cnsltnt_type_cd,user_cre_uid,cntry_id,prvnc_id,city_id,indstry_id,subindstry_id,fnctn_id,panel_id,cntry,prvnc,city,rate,currency,user_cre_ts,last_cntct_ts,indstry, subindstry, cmpny, pstn,fnctn,work_exprnc_txt, cmpny_eng,pstn_eng,work_exprnc_txt_eng, calls,cmplt_call,wrngbr_txt,panel,mobile,telephone,email, rfrl,mkt_rqst,note,bckgrnd_txt,exprts_txt,bckgrnd_txt_eng,exprts_txt_eng,last_upd_ts,call_sort_ind,now() as rivtime FROM ndb_v_dbsearch_all",
+                        "strategy": "simple",
+                        "autocommit": true,
+                        "index": "prod_db",
+                        "type": "ndb_view_dbsearch"
+                    }
+                }
+            }, {
+                "_index": "_river",
+                "_type": "ksexp_full",
+                "_id": "_meta",
+                "_score": 1.0,
+                "_source": {
+                    "type": "jdbc",
+                    "jdbc": {
+                        "url": "jdbc:mysql://192.168.5.181:3306/ksexpt_dev",
+                        "user": "root",
+                        "password": "abc@123",
+                        "sql": "SELECT consultant_id as _id,consultant_id, showname,shortcomment, longcomment,experiencelabel,industryExperienceTime,socialcontribution,checkStatus,industry,create_time,create_user_id,last_update_time,last_update_user_id, most_position_level,most_position_level_byinput FROM ks_consultant ",
+                        "strategy": "simple",
+                        "poll": "5s",
+                        "autocommit": true,
+                        "index": "ksexpt",
+                        "type": "app_consultant"
+                    }
+                }
+            }, {
+                "_index": "_river",
+                "_type": "ksexp_full",
+                "_id": "_status",
+                "_score": 1.0,
+                "_source": {
+                    "node": {
+                        "id": "esKKqVMYTxiMwJbN5RuJhg",
+                        "name": "elastic1",
+                        "transport_address": "inet[/192.168.5.251:9300]"
+                    }
+                }
+            }, {
+                "_index": "_river",
+                "_type": "prod_db_full",
+                "_id": "_status",
+                "_score": 1.0,
+                "_source": {
+                    "node": {
+                        "id": "esKKqVMYTxiMwJbN5RuJhg",
+                        "name": "elastic1",
+                        "transport_address": "inet[/192.168.5.251:9300]"
+                    }
+                }
+            }, {
+                "_index": "_river",
+                "_type": "qa1_db_full",
+                "_id": "_status",
+                "_score": 1.0,
+                "_source": {
+                    "node": {
+                        "id": "esKKqVMYTxiMwJbN5RuJhg",
+                        "name": "elastic1",
+                        "transport_address": "inet[/192.168.5.251:9300]"
+                    }
+                }
+            }]
+    }
+}
+

@@ -124,6 +124,10 @@ POST /index/fulltext/4
 验证索引数据：
 GET /index/_search
 
+vim /etc/elasticsearch/ik/custom/mydict.dic
+#添加分词 
+启停
+
 尝试搜索：
 POST /index/fulltext/_search  
 {

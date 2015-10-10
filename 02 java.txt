@@ -22,7 +22,7 @@ java -version
 安装maven
 cd /tmp
 wget http://mirrors.hust.edu.cn/apache/maven/maven-3/3.1.1/binaries/apache-maven-3.1.1-bin.tar.gz
-tar zxf apache-maven-3.1.1-bin.tar.gz
+tar zxvf apache-maven-3.1.1-bin.tar.gz && \
 mv apache-maven-3.1.1 /usr/local/maven
 
 vi /etc/profile

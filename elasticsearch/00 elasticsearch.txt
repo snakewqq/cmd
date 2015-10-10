@@ -3,7 +3,7 @@ cd /tmp
 wget https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-1.5.2.noarch.rpm
 rpm -ivh elasticsearch-1.5.2.noarch.rpm
 
-vi /etc/init.d/elasticsearch 
+vim /etc/init.d/elasticsearch 
 export ES_HEAP_SIZE=2g
 export JAVA_HOME=/usr/local/java
 :wq
@@ -42,7 +42,7 @@ cd /usr/share/elasticsearch/bin && \
 http://localhost:9200/_plugin/head/
 
 启动es
-service elasticsearch start
+service elasticsearch restart
 
 查看状态
 curl http://localhost:9200/_nodes/process?pretty

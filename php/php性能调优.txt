@@ -24,17 +24,17 @@
 在需要处理大量的小图片(比如:用户头像)上传的时候,使用内存文件系统tmpfs来存储,可以减少一些I/O的开销.但是如果用户是上传非常大的文件(比如:视频)的话,
 就不适合使用tmpfs.
 
-# vi /etc/fstab
+# vim /etc/fstab
 tmpfs                   /tmp                    tmpfs   defaults,nosuid,noatime 0 0
 
 PHP配置调优
 
 php.ini配置调优
 
-mkdir -p /tmp/php
+mkdir -p /tmp/php && \
 chown -R www.www /tmp/php
 
-# vi /etc/php.ini
+# vim /etc/php.ini
 [PHP]
 engine = On
 expose_php = Off
@@ -60,7 +60,7 @@ date.timezone = 'Asia/Shanghai'
 一个web请求持续超过5秒通常意味着有些东西出了问题.我们的目标是页面响应在300-500ms(微秒)之内.
 
 PHP-FPM配置调优
-# vi php-fpm.conf
+# vim php-fpm.conf
 user = www
 group = www
 pm = dynamic

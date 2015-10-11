@@ -4,23 +4,22 @@ elasticsearch-river-jdbc
 初次下载地址
 cd /tmp
 wget http://xbib.org/repository/org/xbib/elasticsearch/plugin/elasticsearch-river-jdbc/1.5.0.5/elasticsearch-river-jdbc-1.5.0.5-plugin.zip
-wet  http://download.softagency.net/MySQL/Downloads/Connector-J/mysql-connector-java-5.1.35.zip
+wget http://download.softagency.net/MySQL/Downloads/Connector-J/mysql-connector-java-5.1.35.zip
 
 二次安装
 put elasticsearch-river-jdbc-1.5.0.5-plugin.zip mysql-connector-java-5.1.35.zip
 
 安装方法：
-cd /usr/share/elasticsearch/bin
+cd /usr/share/elasticsearch/bin && \
 ./plugin --install jdbc --url file:///tmp/elasticsearch-river-jdbc-1.5.0.5-plugin.zip
 
-cd /tmp
-unzip mysql-connector-java-5.1.35.zip
+cd /tmp && \
+unzip mysql-connector-java-5.1.35.zip && \
 cp mysql-connector-java-5.1.35/mysql-connector-java-5.1.35-bin.jar /usr/share/elasticsearch/plugins/jdbc/
 
 service elasticsearch restart
 
 建立索引
-
 
 POST /mysql_table
 

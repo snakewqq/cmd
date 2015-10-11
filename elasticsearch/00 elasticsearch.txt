@@ -9,7 +9,7 @@ export JAVA_HOME=/usr/local/java
 :wq
 
 配置参数
-vi /etc/elasticsearch/elasticsearch.yml
+vim /etc/elasticsearch/elasticsearch.yml
 cluster.name: es_test_cluster
 node.name: "node191"
 bootstrap.mlockall: true
@@ -19,7 +19,7 @@ chkconfig --add elasticsearch
 service elasticsearch start
 
 开启防火墙
-vi /etc/sysconfig/iptables
+vim /etc/sysconfig/iptables
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 9200:9400 -j ACCEPT
 -A INPUT -m pkttype --pkt-type multicast -j ACCEPT
 :wq

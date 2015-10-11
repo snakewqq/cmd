@@ -186,7 +186,6 @@ make && make install
 vim /etc/php.ini
 /msql.so
 extension="/usr/local/php/lib/php/extensions/no-debug-non-zts-20121212/memcache.so"
-
 启动memcached & 重启php-fpm
 service memcached restart
 service php-fpm restart

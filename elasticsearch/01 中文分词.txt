@@ -23,18 +23,23 @@ put elasticsearch-analysis-ik-1.3.0.zip
 
 2、解压, 编译
 解压: 
-unzip elasticsearch-analysis-ik-1.3.0.zip  
+cd /tmp && \
+unzip elasticsearch-analysis-ik-1.3.0.zip && \
 cd elasticsearch-analysis-ik-1.3.0
+
 拷贝conf/ik目录到es的config目录下: 
 cp -r config/ik  /etc/elasticsearch/
+
+#安装maven,详见02 java.txt
 编译: 
 mvn clean package
 
 5,  执行安装命令
+cd /usr/share/elasticsearch/bin/ && \
 ./plugin --install analysis-ik --url file:///tmp/elasticsearch-analysis-ik-1.3.0/target/releases/elasticsearch-analysis-ik-1.3.0.zip
 
 6、在ES的配置文件中增加ik的配置，在最后增加：
-vi /etc/elasticsearch/elasticsearch.yml
+vim /etc/elasticsearch/elasticsearch.yml
 index:
   analysis:
     analyzer:

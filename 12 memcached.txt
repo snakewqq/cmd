@@ -178,12 +178,11 @@ PHP Api Version: 20100412
 Zend Module Api No: 20100525
 Zend Extension Api No: 220100525
 
-./configure --enable-memcache --with-php-config=/usr/local/php/bin/php-config --with-zlib-dir
-make
-make install
+./configure --enable-memcache --with-php-config=/usr/local/php/bin/php-config --with-zlib-dir && \
+make && make install
 
 需要在
-vi /etc/php.ini
+vim /etc/php.ini
 /msql.so
 extension="/usr/local/php/lib/php/extensions/no-debug-non-zts-20090626/memcache.so"
 extension="/usr/local/php/lib/php/extensions/no-debug-non-zts-20121212/memcache.so"

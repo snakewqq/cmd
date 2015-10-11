@@ -82,12 +82,12 @@ cp php.ini-production /usr/local/php/etc/php.ini && \
 rm -rf /etc/php.ini && \
 ln -s /usr/local/php/etc/php.ini /etc/php.ini
 
-vi /etc/php.ini
+vim /etc/php.ini
 date.timezone = Asia/Shanghai
 :wq
 
-cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf
-vi /usr/local/php/etc/php-fpm.conf
+cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf && \
+vim /usr/local/php/etc/php-fpm.conf
 user = www
 group = www
 #取消前面的分号
@@ -103,13 +103,13 @@ groupadd www && \
 useradd www -g www && \
 service php-fpm start
 
-vi /etc/sysconfig/iptables
+vim /etc/sysconfig/iptables
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 9000 -j ACCEPT 
 :wq
 service iptables restart 
 
 将php加入path
-vi /etc/profile
+vim /etc/profile
 export PATH=$PATH:/usr/local/php/bin
 :wq
 source /etc/profile

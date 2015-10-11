@@ -3,7 +3,8 @@ yum -y install keyutils patch perl kernel-headers compat* mpfr cpp glibc libgomp
 yum -y install keyutils-libs-devel libcom_err-devel libsepol-devel libselinux-devel krb5-devel zlib-devel libXpm* freetype && \
 yum -y install libjpeg* libpng* php-common php-gd ncurses* libtool* libxml2 libxml2-devel patch
 
-本地上传nginx-1.4.6.tar.gz pcre-8.31.tar.gz
+本地上传
+put nginx-1.4.6.tar.gz pcre-8.31.tar.gz
 
 #开始安装 Nginx
 #安装Nginx所需的pcre库
@@ -31,7 +32,7 @@ mkdir -p /usr/local/nginx/conf/sites
 
 #创建 Nginx 配置文件
 rm -f /usr/local/nginx/conf/nginx.conf
-vi /usr/local/nginx/conf/nginx.conf
+vim /usr/local/nginx/conf/nginx.conf
 user www www;
 worker_processes 8;
 
@@ -82,7 +83,7 @@ http {
 
 添加test站点
 mkdir -p /data/www/test
-vi /usr/local/nginx/conf/sites/test.conf
+vim /usr/local/nginx/conf/sites/test.conf
 server {
         listen   80; ## listen for ipv4; this line is default and implied
 
@@ -106,7 +107,7 @@ server {
 }
 :wq
 cd /data/www/test
-vi index.php
+vim index.php
 <?php
 phpinfo();
 ?>
@@ -115,7 +116,7 @@ phpinfo();
 chown -R www.www /data/www
 
 添加ndb站点
-vi /usr/local/nginx/conf/sites/ndb.conf
+vim /usr/local/nginx/conf/sites/ndb.conf
 server {
 		listen   80; ## listen for ipv4; this line is default and implied
 		#listen   [::]:80 default ipv6only=on; ## listen for ipv6
@@ -178,7 +179,7 @@ server {
 
 
 #创建 Nginx 开机启动脚本
-vi /etc/init.d/nginx
+vim /etc/init.d/nginx
 #!/bin/bash
 #
 # chkconfig: - 85 15
@@ -235,8 +236,8 @@ chkconfig --add nginx && \
 chkconfig nginx on && \
 service nginx start
 
-vi /etc/sysconfig/iptables
--A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT 
+vim /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 80 -j ACCEPT
 :wq
 service iptables restart
 

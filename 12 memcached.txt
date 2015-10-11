@@ -14,6 +14,7 @@ http://download.csdn.net/detail/clevercode/8654863
 put libevent-1.4.14b-stable.tar.gz  memcached-1.4.5.tar.gz  memcache-2.2.7.tgz
 
 3 Memcached安装
+
 3.1 安装libevent
 1）确保先进行了安装linux必备常用库（Linux中必备常用支持库的安装：http://blog.csdn.net/clevercode/article/details/45438401）。解压
 cd /tmp && \
@@ -35,7 +36,7 @@ make && make install
 
 3.3 memcached启动停止脚本
 1)编写脚本
-vi /etc/init.d/memcached
+vim /etc/init.d/memcached
 #!/bin/sh  
 #  
 # Startup script for the server of memcached  
@@ -133,7 +134,7 @@ chkconfig --level 35 memcached on
 
 3.4 配置防火墙
 1）在防火墙规则中加入11211端口
-vi /etc/sysconfig/iptables
+vim /etc/sysconfig/iptables
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 11211 -j ACCEPT 
 2)重启防火墙
 service iptables restart
@@ -184,8 +185,8 @@ make && make install
 需要在
 vim /etc/php.ini
 /msql.so
-extension="/usr/local/php/lib/php/extensions/no-debug-non-zts-20090626/memcache.so"
 extension="/usr/local/php/lib/php/extensions/no-debug-non-zts-20121212/memcache.so"
+
 启动memcached & 重启php-fpm
 service memcached restart
 service php-fpm restart

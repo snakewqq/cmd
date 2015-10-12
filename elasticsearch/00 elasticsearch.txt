@@ -39,6 +39,11 @@ cd /usr/share/elasticsearch/bin && \
 ./plugin -install mobz/elasticsearch-head && \
 ./plugin -i elasticsearch/marvel/latest
 
+禁止marvel生成每日索引
+vi /etc/elasticsearch/elasticsearch.yml
+marvel.agent.enabled: false
+:wq
+
 http://localhost:9200/_plugin/head/
 
 启动es
@@ -67,5 +72,4 @@ curl -u es_admin -XGET 'http://localhost:9200/'
 curl -u es_admin:es_admin_4321 -XGET 'http://localhost:9200/'
 
 解决Unassigned问题：
-curl -XPUT 'localhost:9200/_settings' \
-    -d '{"index.routing.allocation.disable_allocation": false}'
+curl -XPUT 'localhost:9200/prod_db/_settings' -d '{"index.routing.allocation.disable_allocation": false}'

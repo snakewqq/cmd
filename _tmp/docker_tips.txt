@@ -1,0 +1,105 @@
+进入容器有两个方法
+attach 和 nsenter
+attach 是docker自带的，但会导致所有的控制台都有一样的action，所以推荐使用nsenter工具
+
+nsenter工具2.24有bug，使用最新的2.27版
+下载gz包，解压缩，进入目录，而后:
+./configure --without-ncurses  
+make
+cp nsenter /use/local/bin
+就OK拉！
+然后需要修改bashrc 文件
+在文件末尾添加以下内容
+
+alias docker-pid="sudo docker inspect --format '{{.State.Pid}}'"
+alias docker-ip="sudo docker inspect --format '{{ .NetworkSettings.IPAddress }}'"
+
+#the implementation refs from https://github.com/jpetazzo/nsenter/blob/master/docker-enter
+function docker-enter() {
+    #if [ -e $(dirname "$0")/nsenter ]; then
+    #Change for centos bash running
+    if [ -e $(dirname '$0')/nsenter ]; then
+        # with boot2docker, nsenter is not in the PATH but it is in the same folder
+        NSENTER=$(dirname "$0")/nsenter
+    else
+        # if nsenter has already been installed with path notified, here will be clarified
+        NSENTER=$(which nsenter)
+        #NSENTER=nsenter
+    fi
+    [ -z "$NSENTER" ] && echo "WARN Cannot find nsenter" && return
+
+    if [ -z "$1" ]; then
+        echo "Usage: `basename "$0"` CONTAINER [COMMAND [ARG]...]"
+        echo ""
+        echo "Enters the Docker CONTAINER and executes the specified COMMAND."
+        echo "If COMMAND is not specified, runs an interactive shell in CONTAINER."
+    else
+        PID=$(sudo docker inspect --format "{{.State.Pid}}" "$1")
+        if [ -z "$PID" ]; then
+            echo "WARN Cannot find the given container"
+            return
+        fi
+        shift
+
+        OPTS="--target $PID --mount --uts --ipc --net --pid"
+
+        if [ -z "$1" ]; then
+            # No command given.
+            # Use su to clear all host environment variables except for TERM,
+            # initialize the environment variables HOME, SHELL, USER, LOGNAME, PATH,
+            # and start a login shell.
+            #sudo $NSENTER "$OPTS" su - root
+            sudo $NSENTER --target $PID --mount --uts --ipc --net --pid su - root
+        else
+            # Use env to clear all host environment variables.
+            sudo $NSENTER --target $PID --mount --uts --ipc --net --pid env -i $@
+        fi
+    fi
+}
+
+直接提供了docker-enter命令 给用户
+之后记得执行 source .bashrc 使更改立即生效
+
+导入tar 到镜像
+sudo cat ubuntu-14.04-x86_64-minimal.tar.gz  |docker import - ubuntu:14.04
+
+导出镜像到本地
+sudo docker save -o ubuntu_14.04.tar ubuntu:14.04
+
+载入镜像
+以使用 docker load 从导出的本地文件中再导入到本地镜像库，例如
+sudo docker load --input ubuntu_14.04.tar
+或
+sudo docker load < ubuntu_14.04.tar
+
+docker-registry
+搭建完毕后
+启动
+sudo gunicorn --access-logfile /var/log/docker-registry/access.log --error-logfile /var/log/docker-registry/error.log -k gevent -b 0.0.0.0:15000 -w 4 --max-requests 100 docker_registry.wsgi:application
+
+在客户端上
+pull 和push的时候会遇到 要走https协议的情况，这时在/etc/default/docker文件中添加
+DOCKER_OPTS="$DOCKER_OPTS --insecure-registry=docker.capvision.com:15000"
+
+主要是--insecure-registry 选项， 就能阻止其走https协议了
+
+docker run的端口映射  宿主机端口:容器端口
+
+tar包倒入docker库
+cat XXXX.tar | docker import - test/centos:Version
+docker import -centos7/centos <cat centos7.tar 试一下
+
+docker容器提供外部访问端口的方法 :
+1. 在宿主机上创建虚拟网卡，帮顶虚拟IP 然后运行 docker run 命令进行动态绑定，命令如下：
+ifconfig eth0:0 192.168.5.200 netmask 255.255.255.0
+docker run -d -p 192.168.5.200:80:80 tag
+之后就能通过192.168.5.200来访问容器的80端口提供的服务了
+2. 宿主机上添加iptables 规则 把对于192.168.5.200的访问转发到容器的ip
+由于宿主和容器的IP是可以互相Ping通的，这就为这么做打下了基础，命令如下:
+先进入容器，查看容器IP(172.17.0.9)
+然后执行
+iptables -t nat -A PREROUTING -d 192.168.5.200 -p tcp --dport 80 -j DNAT --to-destination 172.17.0.9
+意为所有访问192.168.5.200的访问都回转发到172.17.0.9上
+
+从本地出去的 172.17.0.0的ip 都伪装成为192.168.5.200
+iptarbles -t nat -A POSTROUTING -s 172.17.0.9 -p tcp --dport 80 -j SNAT --to-source 192.168.5.200

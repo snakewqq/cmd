@@ -4,3 +4,6 @@
 目前72的ccfs后台地址是http://test.backend.conference.capvision.com     admin   111111
 ccfs的api地址是test.api.conference.capvision.com
 搭建ccfs以后需要在后台创建一个application token, 然后将这个token和密码填到对应的ndb系统中
+
+prod:api.callforward.capvision.com
+qa:api.conference.capvision.com

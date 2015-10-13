@@ -1,0 +1,118 @@
+编译安装php 5.4.10，fastCGI模式
+yum -y install gcc gcc-c++ libxml2 libxml2-devel autoconf libjpeg libjpeg-devel libpng libpng-devel gd libc-client-devel && \
+yum -y install bzip2 bzip2-devel curl curl-devel freetype freetype-devel zlib zlib-devel glibc glibc-devel glib2 glib2-devel && \
+yum -y install openldap openldap-devel nss_ldap openldap-clients openldap-servers postgresql-devel
+
+# cd /tmp
+# 本地上传
+put php-5.4.10.tar.gz jpegsrc.v8d.tar.gz libmcrypt-2.5.8.tar.gz
+
+#安装 jpeg
+cd /tmp && \
+tar zxvf jpegsrc.v8d.tar.gz && \
+cd jpeg-8d && \
+./configure -enable-shared -enable-static && \
+make && make install clean
+
+安装libmcrypt
+cd /tmp && \
+tar zxvf libmcrypt-2.5.8.tar.gz && \
+cd libmcrypt-2.5.8 && \
+./configure && \
+make && make install
+
+安装php
+cd /tmp && \
+tar zvxf php-5.4.10.tar.gz && \
+cd php-5.4.10 && \
+mkdir -p /usr/local/php && \
+cp -frp /usr/lib64/libldap* /usr/lib/
+
+percona 5.6软链接问题
+ln -s /usr/local/mysql/lib/libperconaserverclient.so.18 /usr/lib64/libperconaserverclient.so && \
+ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.so
+
+# 安装apache需增加  --with-apxs2=/usr/local/apache/bin/apxs \
+./configure --prefix=/usr/local/php \
+	--with-libxml-dir=/usr/include/libxml2 \
+	--with-config-file-path=/usr/local/php/etc/ \
+	--with-mysql=mysqlnd  \
+	--with-mysqli=mysqlnd  \
+	--with-gd \
+	--enable-gd-native-ttf \
+	--with-zlib \
+	--with-mcrypt \
+	--with-pdo-mysql=mysqlnd  \
+	--enable-shmop \
+	--enable-soap \
+	--enable-sockets \
+	--enable-wddx \
+	--enable-zip \
+	--with-xmlrpc \
+	--enable-fpm \
+	--enable-mbstring \
+	--with-zlib-dir \
+	--with-bz2 \
+	--with-curl \
+	--enable-exif \
+	--enable-ftp \
+	--with-jpeg-dir=/usr/lib64 \
+	--with-png-dir=/usr/lib64 \
+	--with-freetype-dir=/usr/lib64 \
+	--with-iconv \
+	--enable-xml \
+	--enable-bcmath \
+	--enable-sysvsem \
+	--enable-inline-optimization \
+	--enable-mbregex \
+	--with-openssl \
+	--enable-pcntl \
+	--with-gettext \
+	--enable-session \
+	--with-ldap \
+	--with-pgsql=shared \
+	--with-pdo-pgsql 
+ 
+如果服务器内存小于等于1G，需要加上选项:
+--disable-fileinfo   
+
+make -j8 && make install
+
+cp php.ini-production /usr/local/php/etc/php.ini && \
+rm -rf /etc/php.ini && \
+ln -s /usr/local/php/etc/php.ini /etc/php.ini
+
+vim /etc/php.ini
+date.timezone = Asia/Shanghai
+:wq
+
+cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf && \
+vim /usr/local/php/etc/php-fpm.conf
+user = www
+group = www
+#取消前面的分号
+pid = run/php-fpm.pid
+:wq
+
+设置 php-fpm开机启动
+cp sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm && \
+chmod +x /etc/init.d/php-fpm && \
+chkconfig --add php-fpm && \
+chkconfig php-fpm on && \
+groupadd www && \
+useradd www -g www && \
+service php-fpm start
+
+vim /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 9000 -j ACCEPT 
+:wq
+service iptables restart 
+
+将php加入path
+vim /etc/profile
+export PATH=$PATH:/usr/local/php/bin
+:wq
+source /etc/profile
+php --version
+
+#至此php安装完成

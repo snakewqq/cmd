@@ -31,7 +31,7 @@ chown -R www:www /usr/local/nginx/logs && \
 mkdir -p /usr/local/nginx/conf/sites
 
 #创建 Nginx 配置文件
-rm -f /usr/local/nginx/conf/nginx.conf
+rm -f /usr/local/nginx/conf/nginx.conf && \
 vim /usr/local/nginx/conf/nginx.conf
 user www www;
 worker_processes 8;
@@ -82,7 +82,7 @@ http {
 :wq
 
 添加test站点
-mkdir -p /data/www/test
+mkdir -p /data/www/test && \
 vim /usr/local/nginx/conf/sites/test.conf
 server {
         listen   80; ## listen for ipv4; this line is default and implied

@@ -103,6 +103,7 @@ innodb_flush_log_at_trx_commit=1
 lower_case_table_names=1
 log_bin_trust_function_creators=1
 datadir=/data/mysql
+max_allowed_packet=32M
 :wq
 
 在主数据库和从数据库服务器上分别执行以下命令重新启动主数据库和从数据库
@@ -120,8 +121,8 @@ mysql> flush tables with read lock;
 查看主数据库的状态(并记录下File字段和Position字段的值，在配置从服务器时有用到)
 mysql> show master status\G
 *************************** 1. row ***************************
-             File: mysqlmaster-bin.000021
-         Position: 206457672
+ File: mysqlmaster-bin.000003
+         Position: 497714273
      Binlog_Do_DB: 
  Binlog_Ignore_DB: 
 Executed_Gtid_Set: 
@@ -150,7 +151,7 @@ service mysqld start
 
 
 在从数据库服务器上设置主数据库服务器向从数据库服务器同步
-mysql> change master to master_host = '192.168.5.181',master_user='repl',master_password='repl4321',master_log_file='mysqlmaster-bin.000021',master_log_pos=206457672;
+mysql> change master to master_host = '192.168.50.11',master_user='repl',master_password='repl4321',master_log_file='mysqlmaster-bin.000003',master_log_pos=497714273;
 
 启动从数据库复制线程
 mysql> start slave;

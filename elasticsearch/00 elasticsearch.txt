@@ -40,7 +40,7 @@ cd /usr/share/elasticsearch/bin && \
 ./plugin -i elasticsearch/marvel/latest
 
 禁止marvel生成每日索引
-vi /etc/elasticsearch/elasticsearch.yml
+vim /etc/elasticsearch/elasticsearch.yml
 marvel.agent.enabled: false
 :wq
 

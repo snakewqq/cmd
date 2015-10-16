@@ -130,12 +130,17 @@ POST /index/fulltext/3
 POST /index/fulltext/4 
 {"content":"中国驻洛杉矶领事馆遭亚裔男子枪击 嫌犯已自首"}
 
+POST /index/fulltext/5 
+{"content":"中国驻洛大众杉矶启停领事馆遭亚裔男子枪击 嫌犯已自首"}
+
 验证索引数据：
 GET /index/_search
 
 vim /etc/elasticsearch/ik/custom/mydict.dic
 #添加分词 
 启停
+:wq
+
 
 尝试搜索：
 POST /index/fulltext/_search  
@@ -154,6 +159,7 @@ POST /index/fulltext/_search
     }
 }
 
+再尝试搜索
 POST /index/fulltext/_search  
 {
     "query" : { 

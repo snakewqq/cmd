@@ -52,6 +52,7 @@ lower_case_table_names=1
 log_bin_trust_function_creators=1
 datadir=/data/mysql
 max_allowed_packet=32M
+innodb_file_per_table
 :wq
 
 chmod 755 scripts/mysql_install_db && \
@@ -104,6 +105,7 @@ lower_case_table_names=1
 log_bin_trust_function_creators=1
 datadir=/data/mysql
 max_allowed_packet=32M
+innodb_file_per_table
 :wq
 
 在主数据库和从数据库服务器上分别执行以下命令重新启动主数据库和从数据库

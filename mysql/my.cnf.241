@@ -1,0 +1,118 @@
+[client]
+port		= 3306
+socket		= /var/run/mysqld/mysqld.sock
+
+[mysqld_multi]
+mysqld     = /usr/local/mysql/bin/mysqld_safe
+mysqladmin = /usr/local/mysql/bin/mysqladmin
+user       = root
+
+[mysqld2]
+server-id = 2
+user            = mysql
+pid-file        = /var/run/mysqld/mysqld3307.pid
+socket          = /var/run/mysqld/mysqld3307.sock
+port            = 3307
+datadir         = /usr/local/mysql/data3307
+tmpdir          = /tmp/mysql3307
+lc-messages-dir = /usr/local/mysql/share
+log-error = /var/log/mysql/error3307.log
+log_bin = /var/log/mysql/mysql3307-bin.log
+default-storage-engine = InnoDB
+lower_case_table_names  = 1
+character-set-server = utf8
+innodb_file_per_table
+innodb_data_home_dir = /usr/local/mysql/data3307
+
+symbolic-links = 0
+skip-external-locking
+default-storage-engine = InnoDB
+lower_case_table_names  = 1
+character-set-server = utf8
+init_connect = 'SET NAMES utf8'
+back_log = 500
+wait_timeout = 1800
+interactive_timeout = 1800
+max_connections = 2000
+max_user_connections = 800
+innodb_buffer_pool_size = 16G
+key_buffer_size = 16G
+#innodb_additional_mem_pool_size = 50M
+innodb_log_buffer_size = 8M
+query_cache_type  = 1
+query_cache_limit = 4M
+query_cache_size = 256M
+thread_cache_size = 64
+
+innodb_flush_log_at_trx_commit = 0
+innodb_log_file_size = 640M
+max_allowed_packet = 16M
+thread_stack = 192K
+read_buffer_size = 1M
+read_rnd_buffer_size = 2M
+sort_buffer_size = 64M
+join_buffer_size = 64M
+tmp_table_size = 64M
+table_open_cache       = 2000
+
+[mysqld3]
+server-id=241
+user            = mysql
+pid-file        = /var/run/mysqld/mysqld.pid
+socket          = /var/run/mysqld/mysqld.sock
+port            = 3306
+basedir         = /usr/local/mysql
+datadir         = /usr/local/mysql/data3306
+innodb_data_home_dir = /usr/local/mysql/data3306
+tmpdir          = /tmp
+lc-messages-dir = /usr/local/mysql/share/
+explicit_defaults_for_timestamp
+
+log-error = /var/log/mysql/error.log
+log_bin = /var/log/mysql/mysql-bin.log
+expire_logs_days = 10
+max_binlog_size = 100M
+log_bin_trust_function_creators = 1
+binlog-ignore-db=test
+innodb_file_per_table
+
+symbolic-links = 0
+skip-external-locking
+default-storage-engine = InnoDB
+lower_case_table_names  = 1
+character-set-server = utf8 
+init_connect = 'SET NAMES utf8'
+back_log = 500
+wait_timeout = 1800
+interactive_timeout = 1800
+max_connections = 2000
+max_user_connections = 800
+innodb_buffer_pool_size = 32G
+key_buffer_size = 32G
+#innodb_additional_mem_pool_size = 50M
+innodb_log_buffer_size = 8M
+query_cache_type  = 1
+query_cache_limit = 4M
+query_cache_size = 256M
+thread_cache_size = 64
+
+#innodb_flush_log_at_trx_commit = 1
+innodb_log_file_size = 640M
+max_allowed_packet = 16M
+thread_stack = 192K
+read_buffer_size = 1M
+read_rnd_buffer_size = 2M
+sort_buffer_size = 64M
+join_buffer_size = 64M
+tmp_table_size = 64M
+table_open_cache       = 2000
+
+
+
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet	= 16M
+
+

@@ -1,0 +1,80 @@
+49 3 * * * /home/capvision/backup/reco_new.sh
+#!/bin/sh
+export PATH=$PATH:/usr/local/mysql/bin/
+build_sql() {
+        mysql -uadmin -padmin1234 ndb -e 'show tables;' | grep -vP '_view|Tables_in' > /tmp/tables.txt
+        while read line
+        do
+            echo mysql -uadmin -padmin1234 ndb -e "\"alter table $line  discard tablespace;\""
+            echo "mv /home/capvision/backup/ndb/ndb/$line.ibd /data/mysql_data/ndb/"
+            #echo "mv /home/capvision/backup/ndb/ndb/$line.cfg /data/mysql_data/ndb/"
+            echo "mv /home/capvision/backup/ndb/ndb/$line.exp /data/mysql_data/ndb/"
+            echo "chown -R mysql:mysql /data/mysql_data/ndb"
+            echo mysql -uadmin -padmin1234 ndb -e "\"alter table $line import tablespace;\""
+        done < /tmp/tables.txt
+}
+
+get_backup(){
+        scp -P 22 recover@192.168.5.100:/sharebackup/DBbackup/singlendb3307.tgz /home/capvision/backup;
+        scp -P 22 recover@192.168.5.100:/sharebackup/DBbackup/singlendb_bak3307.log /home/capvision/backup;
+        tar -zxvf /home/capvision/backup/singlendb3307.tgz -C /home/capvision/backup
+        rm -rf /home/capvision/backup/ndb
+        mv /home/capvision/backup/singlendb3307 /home/capvision/backup/ndb
+        innobackupex --apply-log --export /home/capvision/backup/ndb/
+
+        mysqldump -uadmin -padmin1234 -h192.168.5.240 -P3307 -S'/var/run/mysqld/mysqld3307.sock' --opt -R --no-data  ndb > /home/capvision/backup/ndb_stru.sql
+        mysql -uadmin -padmin1234 -e "drop database ndb;"
+        mysql -uadmin -padmin1234 -e "flush tables;"
+        rm -rf /data/mysql_data/ndb/
+        mysql -uadmin -padmin1234 -e "create database ndb;"
+        mysql -uadmin -padmin1234 ndb < /home/capvision/backup/ndb_stru.sql;
+ 
+}
+
+rm_backupfile(){
+            rm -rf /home/capvision/backup/mysqlback3307
+            rm -rf /home/capvision/backup/singlendb3307.tgz
+}
+
+report_table(){
+    echo 'begin' 
+    date 
+    mysql -uadmin -padmin1234  dw_simp -e 'call update_dw_table();'
+    mysql -uadmin -padmin1234  dw_simp -e 'call create_view_table_proc();'
+    mysql -uadmin -padmin1234  dw_simp -e 'call proc_clnt_quota();'
+    mysql -uadmin -padmin1234  dw_simp -e 'call client_project_activity();'
+    echo 'end' 
+    date 
+
+}
+get_backup >> /home/capvision/backup/reco_new-`date +%Y%m%d`.log 2>&1
+build_sql > /tmp/myrun.sh
+sh /tmp/myrun.sh >> /home/capvision/backup/reco_new-`date +%Y%m%d`.log 2>&1
+report_table >> /home/capvision/run_report_table_sql.log 2>&1
+#rm_backupfile 
+
+
+
+1. scp不需要密码
+在5.100上执行
+cd /home/recover/.ssh/
+cp authorized_keys authorized_keys.bak
+
+在5.153上执行
+su
+ssh-keygen -b 1024 -t rsa
+cd /root/.ssh/
+ll
+scp -p id_rsa.pub recover@192.168.5.100:/home/recover/.ssh/authorized_keys
+测试：
+scp -P 22 recover@192.168.5.100:/sharebackup/DBbackup/singlendb3307.tgz /home/capvision/backup;
+
+在5.100上执行
+cat authorized_keys.bak >> authorized_keys
+
+在5.153上执行
+crontab -e
+
+
+2. percona + innobackupex
+

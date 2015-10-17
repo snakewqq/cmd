@@ -1,0 +1,138 @@
+# Copyright (c) 2014, Oracle and/or its affiliates. All rights reserved.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
+#
+# The MySQL Community Server configuration file.
+#
+# For explanations see
+# http://dev.mysql.com/doc/mysql/en/server-system-variables.html
+
+[client]
+port		= 3306
+socket		= /var/run/mysqld/mysqld.sock
+default-character-set = utf8
+
+[mysqld_safe]
+pid-file	= /var/run/mysqld/mysqld.pid
+socket		= /var/run/mysqld/mysqld.sock
+nice		= 0
+
+[mysqld]
+user		= mysql
+pid-file	= /var/run/mysqld/mysqld.pid
+socket		= /var/run/mysqld/mysqld.sock
+port		= 3306
+basedir		= /usr/local/mysql
+datadir		= /data/mysql_data
+tmpdir		= /tmp
+lc-messages-dir	= /usr/local/mysql/share
+explicit_defaults_for_timestamp
+
+#ONLY_FULL_GROUP_BY 
+#only_full_group_by = 0
+
+# Instead of skip-networking the default is now to listen only on
+# localhost which is more compatible and is not less secure.
+
+#bind-address	= 127.0.0.1
+
+#innodb_force_recovery=6
+
+log-error = /var/log/mysql/error.log
+log_bin = /var/log/mysql/mysql-bin.log
+expire_logs_days = 10
+max_binlog_size = 100M
+log_bin_trust_function_creators = 1
+
+innodb_file_per_table
+
+# Recommended in standard MySQL setup
+#sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links = 0
+
+skip-external-locking
+
+default-storage-engine = InnoDB
+lower_case_table_names	= 1
+
+character-set-server = utf8 
+init_connect = 'SET NAMES utf8'
+
+back_log = 500
+interactive_timeout = 216000
+max_connections = 200
+max_user_connections = 100
+#thread_concurrency = 32
+
+innodb_data_home_dir = /data/mysql_data
+
+innodb_buffer_pool_size = 6G
+#innodb_additional_mem_pool_size = 50M
+innodb_log_buffer_size = 8M
+query_cache_type  = 1
+query_cache_limit = 4M
+query_cache_size = 256M
+#key_buffer = 100M
+thread_cache_size = 64
+
+innodb_flush_log_at_trx_commit = 1
+innodb_log_file_size = 64M
+
+
+wait_timeout=28800
+
+interactive_timeout = 28800
+
+max_allowed_packet=32M
+
+thread_stack = 192K
+
+
+#sort_buffer_size = 16M
+#join_buffer_size = 16M
+
+table_open_cache       = 2000
+
+
+# Master/Slave
+server-id=387
+#rpl_semi_sync_master_enabled=1
+#rpl_semi_sync_master_timeout=1000
+#rpl_semi_sync_slave_enabled=1
+#sync_binlog = 1
+#skip-networking
+net_read_timeout = 6000
+
+#!includedir /etc/mysql/conf.d/
+###########Slow query########
+#log_slow_queries = ON
+#log-slow-queries = /var/log/mysql/slow-queries.log
+#long_query_time = 5
+#log-queries-not-using-indexes
+#log-slow-admin-statements
+#############################
+
+[mysqldump]
+quick
+quote-names
+max_allowed_packet	= 16M
+
+
+# * IMPORTANT: Additional settings that can override those from this file!
+#   The files must end with '.cnf', otherwise they'll be ignored.
+#
+

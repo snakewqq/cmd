@@ -95,3 +95,23 @@ service sshd restart
 删除用户（删除前先备份/home/www目录）
 userdel -rf www
 
+硬盘挂载
+fdisk -l
+查看是否检测到硬盘信息
+格式化硬盘
+mkfs.ext4 /dev/sdb
+加入系统启动
+vi /etc/fstab
+/dev/sdb                                /data                 ext4    defaults                0 0
+:wq
+mount -a
+df -h
+Filesystem                    Size  Used Avail Use% Mounted on
+/dev/mapper/VolGroup-lv_root   18G  6.5G  9.8G  40% /
+tmpfs                         3.9G     0  3.9G   0% /dev/shm
+/dev/sda1                     477M   51M  401M  12% /boot
+/dev/sdb                      158G   60M  150G   1% /data
+
+
+
+

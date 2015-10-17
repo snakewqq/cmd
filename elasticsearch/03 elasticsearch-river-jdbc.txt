@@ -25,24 +25,6 @@ POST /mysql_table
 
 填充数据
 
-PUT /_river/mysql_table/_meta
-{
-    "type" : "jdbc",
-    "jdbc" : {
-        "driver" : "com.mysql.jdbc.Driver",
-        "url" : "jdbc:mysql://192.168.5.183:3306/ndb_qa",
-        "user" : "dev",
-        "password" : "dev",
-        "strategy": "oneshot",
-        "sql" : "SELECT * FROM ndb_view_dbsearch;"
-    },
-    "index" : {
-        "index" : "mysql_table",
-        "type" : "mysql_row",
-        "bulk_size": 500
-    }
-}
-
 Ok, my data is loaded and looks OK!
 
 Now that the prepwork is finished, here is a script that will:

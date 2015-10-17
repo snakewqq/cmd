@@ -30,8 +30,7 @@ export MAVEN_HOME=/usr/local/maven
 export PATH=$PATH:$MAVEN_HOME/bin
 :wq
 
-source /etc/profile
-
+source /etc/profile && \
 mvn -v
 
 

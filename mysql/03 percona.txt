@@ -71,7 +71,7 @@ service iptables restart
 vim /etc/profile
 export PATH=$PATH:/usr/local/mysql/bin
 :wq
-source /etc/profile
+source /etc/profile && \
 mysql --version
 
 初始化root密码

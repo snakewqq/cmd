@@ -106,7 +106,7 @@ server {
         }
 }
 :wq
-cd /data/www/test
+cd /data/www/test && \
 vim index.php
 <?php
 phpinfo();

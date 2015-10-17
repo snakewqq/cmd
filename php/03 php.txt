@@ -71,7 +71,7 @@ ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.s
 	--enable-session \
 	--with-ldap \
 	--with-pgsql=shared \
-	--with-pdo-pgsql 
+	--with-pdo-pgsql
  
 如果服务器内存小于等于1G，需要加上选项:
 --disable-fileinfo   
@@ -112,7 +112,7 @@ service iptables restart
 vim /etc/profile
 export PATH=$PATH:/usr/local/php/bin
 :wq
-source /etc/profile
+source /etc/profile && \
 php --version
 
 #至此php安装完成

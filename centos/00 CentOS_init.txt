@@ -53,7 +53,7 @@ yum makecache
 yum info gcc
 
 安装常用命令
-yum -y install wget traceroute bind-utils telnet net-snmp man ntpdate openssh-clients tree zip unzip mlocate openssl-devel lrzsz
+yum -y install wget traceroute bind-utils telnet net-snmp man ntpdate openssh-clients tree zip unzip mlocate openssl-devel lrzsz screen vim
 
 修改服务器时间
 ntpdate time.nist.gov

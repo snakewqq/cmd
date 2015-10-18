@@ -62,10 +62,7 @@ date
 hwclock -w
 
 定时校正服务器时钟，定时与中国国家授时中心授时服务器同步
-crontab -e
-加入一行：
-*/30 * * * * ntpdate time.nist.gov > /dev/null 2>&1
-:wq
+echo '*/30 * * * * ntpdate time.nist.gov > /dev/null 2>&1' >> /etc/crontab
 
 
 添加用户
@@ -78,7 +75,6 @@ vi /etc/sudoers
 chmod 440 /etc/sudoers
 usermod -g root capvision
 su capvision
-su -
 
 禁止root本地登录
 vi /etc/pam.d/login

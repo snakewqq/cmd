@@ -109,9 +109,7 @@ vim /etc/sysconfig/iptables
 service iptables restart 
 
 将php加入path
-vim /etc/profile
-export PATH=$PATH:/usr/local/php/bin
-:wq
+echo 'export PATH=$PATH:/usr/local/php/bin' >> /etc/profile && \
 source /etc/profile && \
 php --version
 

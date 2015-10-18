@@ -74,7 +74,7 @@ phpinfo();
 # chown -R www.www /usr/local/apache/htdocs
 #配置apache以module方式使用php 
 
-vi /usr/local/apache/conf/httpd.conf 
+vim /usr/local/apache/conf/httpd.conf 
 #ServerRoot "/usr/local/apache"
 #ServerAdmin you@example.com
 

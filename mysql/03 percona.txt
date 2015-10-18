@@ -69,9 +69,7 @@ vim /etc/sysconfig/iptables
 service iptables restart
 
 将mysql加入path
-vim /etc/profile
-export PATH=$PATH:/usr/local/mysql/bin
-:wq
+echo 'export PATH=$PATH:/usr/local/mysql/bin' >> /etc/profile && \
 source /etc/profile && \
 mysql --version
 

@@ -28,6 +28,7 @@ vim /etc/zabbix/zabbix_server.conf
 DBHost=127.0.0.1
 DBUser=admin
 DBPassword=admin1234
+#DBSocket=/var/lib/mysql/mysql.sock
 CacheSize=256M
 :wq
 

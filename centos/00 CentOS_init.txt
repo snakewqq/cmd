@@ -108,6 +108,9 @@ tmpfs                         3.9G     0  3.9G   0% /dev/shm
 /dev/sda1                     477M   51M  401M  12% /boot
 /dev/sdb                      158G   60M  150G   1% /data
 
-
+安装pigz
+wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
+rpm -ivh rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
+yum -y install pigz
 
 

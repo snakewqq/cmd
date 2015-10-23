@@ -157,9 +157,9 @@ SELECT DISTINCT(clientid),MAX(percentage) AS percentage FROM ndb_client_am_perce
 GROUP BY clientid) b \
 WHERE a.clientid = b.clientid AND a.percentage = b.percentage) f, ndb_employees g \
 WHERE a.id = b.`clientid` AND a.`amteamid` = d.`id` AND b.status = 1 \
-AND d.`taxonomyid` = c.`id` AND c.`name` = 'CLIENT AM LIST' AND d.name = 'PSF' \
-AND a.id = e.clientid AND e.status IN (4,8,7) \
+AND d.`taxonomyid` = c.`id` AND c.`name` = 'CLIENT AM LIST' AND d.name = 'PE/C' \
+AND a.id = e.clientid AND e.status IN (4,5,8,7) \
 AND a.id = f.clientid AND f.amid = g.id \
-INTO OUTFILE '/tmp/client_psf.csv' FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' LINES TERMINATED BY '\n';
+INTO OUTFILE '/tmp/client_pec.csv' FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' LINES TERMINATED BY '\n';
 
 

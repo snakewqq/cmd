@@ -113,4 +113,9 @@ wget http://apt.sw.be/redhat/el6/en/x86_64/rpmforge/RPMS/rpmforge-release-0.5.3-
 rpm -ivh rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
 yum -y install pigz
 
+安装vim
+yum -y install vim
+mv /bin/vi /bin/vi_old
+ln -s /usr/bin/vim /bin/vi
+
 

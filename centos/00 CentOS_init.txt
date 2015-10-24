@@ -62,7 +62,9 @@ date
 hwclock -w
 
 定时校正服务器时钟，定时与中国国家授时中心授时服务器同步
-echo '*/30 * * * *     /usr/sbin/ntpdate time.nist.gov > /root/ntpdate.log 2>&1' >> /etc/crontab
+crontab -e
+*/30 * * * *     /usr/sbin/ntpdate time.nist.gov > /root/ntpdate.log 2>&1
+:wq
 
 
 添加用户

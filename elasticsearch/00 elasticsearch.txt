@@ -28,8 +28,8 @@ service iptables restart
 修改最大文件打开数
 ulimit -a
 vim /etc/security/limits.conf
-*　　            soft　　nofile　　      65536
-*　　            hard 　 nofile　　      65536
+*　　            soft　　nofile　　      1000000
+*　　            hard 　 nofile　　      1000000
 :wq
 exit
 ulimit -a

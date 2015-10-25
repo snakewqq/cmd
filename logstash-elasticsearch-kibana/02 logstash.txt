@@ -38,7 +38,7 @@ vi /etc/logstash.conf
 input {
   file {
     type => "type_count"
-    path => ["/usr/local/nginx/logs/ndb.error.log", "/usr/local/nginx/logs/error.log", "/usr/local/nginx/logs/ndb.access.log"]
+    path => ["/tmp/singlendb_bak3307.log", "/tmp/slave_monitor.log"]
     exclude => ["*.gz"]
   }   
 }

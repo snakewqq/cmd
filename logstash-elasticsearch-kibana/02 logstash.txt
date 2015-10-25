@@ -1,0 +1,70 @@
+部署中心LogStash
+cd /tmp
+wget https://download.elasticsearch.org/logstash/logstash/logstash-1.4.2.tar.gz
+tar zxvf logstash-1.4.2.tar.gz
+mv logstash-1.4.2 /usr/local/logstash
+vi /etc/logstash.conf
+input {
+	redis {
+		host => "127.0.0.1"
+		port => 6379 
+		type => "redis-input"
+		data_type => "list"
+		key => "key_count"
+	}   
+}
+
+output {
+	stdout {}
+	elasticsearch {
+		host => "127.0.0.1:9200"
+		codec => "json"
+		protocol => "http"
+	}   
+}
+:wq
+
+启动logstash
+nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf >/var/log/logstash.run.log 2>&1 &
+
+开机启动配置
+echo "nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf >/var/log/logstash.run.log 2>&1 &" >> /etc/rc.local
+
+部署远程LogStash
+wget https://download.elasticsearch.org/logstash/logstash/logstash-1.4.2.tar.gz
+tar zxvf logstash-1.4.2.tar.gz
+mv logstash-1.4.2 /usr/local/logstash
+vi /etc/logstash.conf
+input {
+  file {
+    type => "type_count"
+    path => ["/usr/local/nginx/logs/ndb.error.log", "/usr/local/nginx/logs/error.log", "/usr/local/nginx/logs/ndb.access.log"]
+    exclude => ["*.gz"]
+  }   
+}
+
+output {
+  stdout {}
+  redis {
+    host => "127.0.0.1"
+    port => 6379
+    data_type => "list"
+    key => "key_count"
+  }   
+}
+:wq
+
+配置文件表示输入来自于目录/data/logs/count/下的stdout.log和stderr.log两个文件，且排除该目录下所有
+.gz文件和access.log；(这里因为path没有使用通配符，所以exclude是没有效果的)；输出表示将监听到的event
+发送到redis服务器，使用redis的list保存，key为”key_count”，这里的 data_type 属性和 key 属性应该与中心
+agent的配置一致；
+
+启动logstash
+nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf >/var/log/logstash.run.log 2>&1 &
+
+开机启动配置
+echo "nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf >/var/log/logstash.run.log 2>&1 &" >> /etc/rc.local
+
+
+
+

@@ -1,53 +1,54 @@
-安装环境：
-CentOS 6.5
-Redis 2.8.18
+centos6安装redis-2.8.19.tar.gz
 
-yum -y install tcl
+1、检查安装依赖程序
+yum -y install gcc-c++ tcl wget
 
-cd /tmp
+2、获取安装文件
+cd tmp 
+wget http://download.redis.io/releases/redis-2.8.19.tar.gz
 
-wget http://download.redis.io/releases/redis-2.8.18.tar.gz
+3、解压文件
+tar -xzvf redis-2.8.19.tar.gz
+mv redis-2.8.19 /usr/local/redis
 
-tar zxvf redis-2.8.18.tar.gz
+4、进入目录
+cd /usr/local/redis
 
-cd redis-2.8.18
-
-cd src
-
+5、编译安装
 make
 make install
 
-cd /usr/local/bin
-cp /tmp/redis-2.8.18/redis.conf .
+6、设置配置文件路径
+cp redis.conf /etc/
 
-vi redis.conf
+7、修改配置文件
+vi /etc/redis.conf
 #maxmemory <bytes>
+#2G
 maxmemory <2147483648>
 daemonize yes
 :wq
 
-# vi /etc/sysconfig/iptables
--A INPUT -m state --state NEW -m tcp -p tcp --dport 6379 -j ACCEPT 
+8、启动
+/usr/local/bin/redis-server /etc/redis.conf
+
+9、查看启动
+ps -ef | grep redis 
+vi /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 6379 -j ACCEPT
 :wq
-# service iptables restart
+service iptables restart
 
-启动
-./redis-server redis.conf
+10、使用客户端测试redis
+redis-cli
+>set name david
+OK
+>get name
+"david"
 
-./redis-cli  
-redis> set foo bar  
-OK  
-redis> get foo  
-"bar"  
+11.关闭客户端
+redis-cli shutdown
 
-“WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.”（警告：过量使用内存设置为0！在低内存环境下，后台保存可能失败。为了修正这个问题，请在/etc/sysctl.conf 添加一项 'vm.overcommit_memory = 1' ，然后重启（或者运行命令'sysctl vm.overcommit_memory=1' ）使其生效。）
- 解决警告就做如下操作：
-        vi /etc/sysctl.conf#编辑，在最后一行添加下面代码
-        vm.overcommit_memory = 1
-        :wq!#保存退出
-        sysctl -p#使设置立即生效
-5
-连接：
-如果是绑定的127.0.0.1的6379的话直接/usr/local/redis/bin/redis-cli连接上，但如果绑定在局域网IP，在本机登陆也要指定IP：
-/usr/local/redis/bin/redis-cli -h 192.168.x.x -p 6379
-
+12、开机启动配置
+echo "/usr/local/bin/redis-server /etc/redis.conf &" >> /etc/rc.local
+开机启动要配置在 rc.local 中，而 /etc/profile 文件，要有用户登录了，才会被执行。

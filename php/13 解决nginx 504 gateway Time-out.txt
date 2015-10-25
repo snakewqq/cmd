@@ -1,0 +1,29 @@
+在CentOS下配置lnmp组合基本上用的都是同样的配置文件，一直都没出现过问题，可最近在一个vps上安装同样的环境之后，网站在线10多人就出 现了打开速度非常缓慢的情况，
+有好几次都是直接达到了nginx中设置的脚本最大超时时间300秒，结果导致nginx往客户端浏览器发送了一个504 Gateway Time-out的错误代码，
+分析了之后改动了几处配置文件，终于避免了该情况的出现。
+  
+  从 错误代码基本可以确定跟nginx本身无关，主要是提交给php-fpm的请求未能正确反馈而导致，一般情况下，提交动态请求的时候，
+  nginx会直接把 请求转交给php-fpm，而php-fpm再分配php-cgi进程来处理相关的请求，之后再依次返回，最后由nginx把结果反馈给客户端浏览器，
+  但 我这个vps目前跑的是个纯php应用内容，实际上用户所有的请求都是php请求，有的耗费时间比较久，php-cgi进程就一直都被用满，
+  而php- fpm本身的配置文件只打开了10组php-cgi进程，这样的话在线用户稍微多的话就会导致请求无法被正常处理而出错。
+  
+  大概分析出了原 因，下面做就比较容易了，首先是更改php-fpm的几处配置：
+  
+  把max_children由之前的10改为现在的30，这样就可以保证 有充足的php-cgi进程可以被使用；
+  把request_terminate_timeout由之前的0s改为60s，这样php-cgi进程 处理脚本的超时时间就是60秒，可以防止进程都被挂起，提高利用效率。
+  
+  接着再更改nginx的几个配置项，减少FastCGI的请求次 数，尽量维持buffers不变：
+  
+  fastcgi_buffers由 4 64k 改为 2 256k；
+  fastcgi_buffer_size 由 64k 改为 128K；
+  fastcgi_busy_buffers_size 由 128K 改为 256K；
+  fastcgi_temp_file_write_size 由 128K 改为 256K。
+  
+  好了，重新加载php-fpm和nginx的配置，再次测试，至今两周时间内没有再出现504 Gateway Time-out的情况，算是达到效果了。
+
+   
+
+  另外，php-fpm的默认静态处理方式会使得php-cgi的进程长期占用内存而无法释放，这也是导致nginx出错的原因之一，因此可以将php-fpm的处理方式改成apache模式。
+  <value name=”style”>apache-like</value>
+
+  从更改完毕到现在的测试表明上述方式的效果还是很明显的，并没有发现一次Nginx502 bad gateway或504 Gateway Time-out错误。当然，如果你的VPS或者服务器的性能足够好可以根据具体情况不必做无谓的改动。

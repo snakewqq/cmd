@@ -1,0 +1,58 @@
+Enable MySQL¡¯s slow query log without a restart
+You're debugging a MySQL server and want to enable the Slow Query, you can do so via the MySQL CLI. There's no need to make changes to the my.cnf file and restart your MySQL service -- even though that would also work.
+
+Log in to the MySQL CLI via mysql.
+
+$ mysql -uroot -p -h127.0.0.1
+mysql> SET GLOBAL slow_query_log_file = '/var/log/mysql-log-slow-queries.log'; 
+mysql> SET GLOBAL long_query_time = 0.2; 
+mysql> SET GLOBAL slow_query_log = 1;
+mysql> SET GLOBAL log_queries_not_using_indexes = 1; 
+mysql> FLUSH LOGS; 
+
+As a bonus, you can also make all queries that do not use indexes be logged to the same Slow Query log.
+
+
+If you want to make these changes persistent, modify the my.cnf and add these lines to the [mysqld] part of the config.
+
+[mysqld]
+...
+slow_query_log = /path/to/slow_query.log
+long_query_time = 10
+log_queries_not_using_indexes = YES
+This will also work for MariaDB or Percona's version of MySQL.
+
+To verify if your settings are working, request the running parameters from MySQL.
+
+mysql> SHOW GLOBAL VARIABLES LIKE 'log_queries_not_using_indexes';
++-------------------------------+-------+
+| Variable_name                 | Value |
++-------------------------------+-------+
+| log_queries_not_using_indexes | ON    |
++-------------------------------+-------+
+
+mysql> SHOW GLOBAL VARIABLES LIKE 'slow\_%';
++---------------------+-------------------------------+
+| Variable_name       | Value                         |
++---------------------+-------------------------------+
+| slow_query_log      | ON                            |
+| slow_query_log_file | /path/to/slow_query.log       |
++---------------------+-------------------------------+
+
+mysql> SHOW GLOBAL VARIABLES LIKE 'long_query_time';
++-----------------+-----------+
+| Variable_name   | Value     |
++-----------------+-----------+
+| long_query_time | 10.000000 |
++-----------------+-----------+
+And don't forget to either disable it again after your debug-session, or enable logrotate to prevent the files from growing too large. To disable the logging, but leave the rest of the requested configs intact, use the following at the CLI.
+
+mysql> SET GLOBAL slow_query_log = 'OFF';
+mysql> FLUSH LOGS; 
+To disable it permanently in the my.cnf file, set the slow_query_log to 0.
+
+[mysqld]
+...
+slow_query_log = 0
+long_query_time = 10
+log_queries_not_using_indexes = YES

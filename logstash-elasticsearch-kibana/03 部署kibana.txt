@@ -1,0 +1,56 @@
+cd /tmp
+wget http://repo1.maven.org/maven2/org/eclipse/jetty/jetty-distribution/9.2.1.v20140609/jetty-distribution-9.2.1.v20140609.tar.gz
+tar zxvf jetty-distribution-9.2.1.v20140609.tar.gz
+mv jetty-distribution-9.2.1.v20140609 /usr/local/jetty
+
+cd /tmp
+wget https://download.elasticsearch.org/kibana/kibana/kibana-3.1.1.tar.gz
+tar zxvf kibana-3.1.1.tar.gz
+
+修改配置文件config.js，仅需要配置elasticsearch的地址即可：
+vi kibana-3.1.1/config.js
+elasticsearch: "http://127.0.0.1:9200"
+:wq
+
+mv kibana-3.1.1 /usr/local/jetty/webapps/kibana
+
+开启防火墙
+vi /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 8080 -j ACCEPT
+:wq
+service iptables restart
+
+启动jetty
+/usr/local/jetty/bin/jetty.sh start
+
+开启浏览器
+访问
+http://192.168.5.164:8080/kibana
+
+Kibana查询介绍
+Kibana查询语法遵循Lucene的语法规范
+
+常用的有以下几种
+1）逻辑查询
+操作符：AND（&&）， OR（||）， NOT（！）
+优先级：！ > && > ||
+默认情况下是或操作，如：field：（hello world）匹配field值为hello或world的事件
+
+2）范围查询
+支持类型：date，数值，字符串
+闭区间：[min to max]  等价于 >=min && <= max
+开区间：{min to max} 等价于 >min && <max
+半开闭区间: [min to max} {min to max]
+NOTE: 对于date和数值类型，min或max可以使用*
+
+3）子查询
+使用()，如: field：（hello world）,(hello world)为一子查询
+
+4）通配符
+？：匹配一个字符
+*: 匹配0个或多个字符
+NOTE：通配符会导致使用大量内存，从而降低响应速度，要慎用
+
+5）保留字符转义
+保留字符有：+ - && || ! ( ) { } [ ] ^ " ~ * ? : \ /
+如果搜索条件中含有保留字符，使用\转义

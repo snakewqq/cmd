@@ -1,0 +1,146 @@
+php通过memcached共享session  
+
+主要目的:架设1台memcached服务器,使2台web程序可以共享session,满足nginx调度之后2台web的同步和负载均衡,同时通过缓存加快php运行速度.
+
+Memcached服务器端安装:
+
+1.下载libevent和memcached
+
+最新版本是: libevent-1.4.9-stable.tar.gz和memcached-1.2.6.tar.gz
+
+libevent官方: http://www.monkey.org/~provos/libevent/
+
+Memcached官方: http://www.danga.com/memcached/
+
+2.安装
+
+# cd /data/src
+
+# tar zxvf libevent-1.4.9-stable.tar.gz
+
+# cd libevent-1.4.9-stable
+
+# ./configure –prefix=/usr && make && make install
+
+# ls -al /usr/lib |grep libevent # 检查是否安装成功
+
+# cd /data/src
+
+# tar zxvf memcached-1.2.6.tar.gz
+
+# cd memcached-1.2.6
+
+# ./configure –with-libevent=/usr && make && make install
+
+# ls –al /usr/local/bin/mem* # 检查是否安装成功
+
+3.启动
+
+# /usr/local/bin/memcached –d –m 512 –l 211.162.62.77 -p 11211 -P /tmp/memcached.pid
+
+-d选项是启动一个守护进程;
+
+-m是分配给Memcache使用的内存数量;单位是MB;
+
+-u是运行Memcache的用户,或者是root，
+
+-l是监听的服务器IP地址;
+
+-p是设置Memcache监听的端口;
+
+-c选项是最大运行的并发连接数，默认是1024;
+
+-P是设置保存Memcache的pid文件;保存在 /tmp/memcached.pid
+
+ 
+
+Web端的设置
+
+1.安装php-memcached扩展
+
+# cd /data/src
+
+# tar zxvf memcache-3.0.3.tgz
+
+# cd memcache-3.0.3
+
+# /usr/local/php/bin/phpize
+
+# ./configure --enable-memcache --with-zlib-di –with-php-config=/usr/local/php/bin/php-config
+
+# make && make install
+
+设置php.ini
+
+把extension_dir修改为/usr/local/php/lib/php/extensions
+
+把memcache.so复制到上述目录
+
+添加一行载入memcache扩展:extension = memcache.so
+
+vi /etc/php.ini
+#在[session]标签下,把
+session.save_handler = memcache
+session.save_path = "tcp://211.162.58.77:11211"
+:wq
+
+
+2.测试环境
+
+1)phpinfo
+
+Registered save handlers
+
+files user sqlite memcache
+
+2)test1.php
+
+<?php
+
+session_start();
+
+if (!isset($_SESSION['TEST'])) {   
+
+$_SESSION['TEST'] = time();
+
+}
+
+$_SESSION['TEST3'] = time();
+
+print $_SESSION['TEST'];
+
+print "<br><br>";
+
+print $_SESSION['TEST3'];
+
+print "<br><br>";
+
+print session_id();
+
+?>
+
+输出:
+
+1234506445
+
+1234506445
+
+3bbf03b9cedace4e0164a0c3d56712d1
+
+3)test2.php
+
+取test1.php输出的sessionid来测试
+
+<?php
+
+$memcache = memcache_connect('211.162.58.77', 11211);
+
+var_dump($memcache->get('3bbf03b9cedace4e0164a0c3d56712d1'));
+
+?>
+
+输出:
+
+string(37) "TEST|i:1234503252;TEST3|i:1234503398;"
+
+至此,测试成功!

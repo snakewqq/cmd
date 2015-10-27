@@ -60,7 +60,7 @@ date.timezone = 'Asia/Shanghai'
 一个web请求持续超过5秒通常意味着有些东西出了问题.我们的目标是页面响应在300-500ms(微秒)之内.
 
 PHP-FPM配置调优
-# vim php-fpm.conf
+vi /usr/local/php/etc/php-fpm.conf
 user = www
 group = www
 pm = dynamic
@@ -73,9 +73,23 @@ pm.max_spare_servers = 15
 pm.max_requests = 1000
 pm.status_path = /php_status
 
-request_terminate_timeout = 0
+;修改php-cgi进程处理脚本的超时时间，防止进程都被挂起，提高利用效率
+request_terminate_timeout = 600
+
 request_slowlog_timeout = 0
 slowlog = /data/my_app/logs/slow.log
+
+vi /usr/local/nginx/conf/nginx.conf
+
+fastcgi_connect_timeout 3000;
+fastcgi_send_timeout 3000;
+fastcgi_read_timeout 3000;
+fastcgi_buffer_size 512k;
+fastcgi_buffers 2 512k;
+fastcgi_busy_buffers_size 512k;
+fastcgi_temp_file_write_size 512k;
+:wq
+		
 
 
 相关阅读：

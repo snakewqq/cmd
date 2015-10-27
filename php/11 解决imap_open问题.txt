@@ -1,0 +1,17 @@
+解决imap_open问题
+yum -y install libc-client-devel
+updatedb
+locate libc-client
+ln -s /usr/lib64/libc-client.so /usr/lib/
+cd /tmp/php-5.5.9/ext/imap
+phpize
+./configure --with-php-config=/usr/local/php/bin/php-config --with-kerberos --with-imap-ssl
+make
+cp modules/imap.so /usr/local/php/lib/php/extensions/no-debug-non-zts-20121212/
+vi /etc/php.ini
+/msql.so
+extension="/usr/local/php/lib/php/extensions/no-debug-non-zts-20121212/imap.so"
+:wq
+service php-fpm restart
+
+

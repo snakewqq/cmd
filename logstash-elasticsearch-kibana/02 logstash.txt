@@ -1,0 +1,138 @@
+部署中心LogStash
+cd /tmp
+wget https://download.elasticsearch.org/logstash/logstash/logstash-1.4.2.tar.gz
+tar zxvf logstash-1.4.2.tar.gz
+mv logstash-1.4.2 /usr/local/logstash
+vi /etc/logstash.conf
+input {
+	redis {
+		host => "127.0.0.1"
+		port => 6379 
+		type => "redis-input"
+		data_type => "list"
+		key => "key_count"
+	}   
+}
+
+output {
+	stdout {}
+	elasticsearch {
+		host => "127.0.0.1:9200"
+		codec => "json"
+		protocol => "http"
+	}   
+}
+:wq
+
+启动logstash
+nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf >/var/log/logstash.run.log 2>&1 &
+
+开机启动配置
+echo "nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf >/var/log/logstash.run.log 2>&1 &" >> /etc/rc.local
+
+部署远程LogStash
+wget https://download.elasticsearch.org/logstash/logstash/logstash-1.4.2.tar.gz
+tar zxvf logstash-1.4.2.tar.gz
+mv logstash-1.4.2 /usr/local/logstash
+vi /etc/logstash.conf
+input {
+  file {
+    type => "type_count"
+    path => ["/tmp/singlendb_bak3307.log", "/tmp/slave_monitor.log"]
+    exclude => ["*.gz"]
+  }   
+}
+
+output {
+  stdout {}
+  redis {
+    host => "127.0.0.1"
+    port => 6379
+    data_type => "list"
+    key => "key_count"
+  }   
+}
+:wq
+
+配置文件表示输入来自于目录/data/logs/count/下的stdout.log和stderr.log两个文件，且排除该目录下所有
+.gz文件和access.log；(这里因为path没有使用通配符，所以exclude是没有效果的)；输出表示将监听到的event
+发送到redis服务器，使用redis的list保存，key为”key_count”，这里的 data_type 属性和 key 属性应该与中心
+agent的配置一致；
+
+启动logstash
+nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf >/var/log/logstash.run.log 2>&1 &
+
+开机启动配置
+echo "nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf >/var/log/logstash.run.log 2>&1 &" >> /etc/rc.local
+
+---------------------------------------------------------------------------------以下有空继续研究
+关于pattern的debug 可以用官网推荐的线上debug工具 
+https://grokdebug.herokuapp.com/
+
+vi /usr/local/logstash/patterns/nginx
+NGINXURI %{URIPATH}(?:%{URIPARAM})*
+NGINXACCESS \[%{HTTPDATE}\] %{NUMBER:code} %{IP:client} %{HOSTNAME} %{WORD:method} %{NGINXURI:req} %{URIPROTO}/%{NUMBER:version} %{IP:upstream}(:%{POSINT:port})? %{NUMBER:upstime} %{NUMBER:reqtime} %{NUMBER:size} "(%{URIPROTO}://%{HOST:referer}%{NGINXURI:referer}|-)" %{QS:useragent} "(%{IP:x_forwarder_for}|-)"
+:wq
+
+
+Developing
+If you don't have JRuby already (or don't use rvm, rbenv, etc), you can have bin/logstash fetch it for you by setting USE_JRUBY:
+Otherwise, here's how to get started with rvm:
+# Install JRuby with rvm
+rvm install jruby-1.7.11
+rvm use jruby-1.7.11
+
+Now install dependencies:
+
+# Install logstash ruby dependencies
+bin/logstash deps
+
+Other commands:
+
+# to use Logstash gems or libraries in irb, use the following
+# this gets you an 'irb' shell with Logstash's environment
+bin/logstash irb
+
+# Run Logstash
+bin/logstash agent [options]
+
+# If running bin/logstash agent yields complaints about log4j/other things
+# This will download the elasticsearch jars so Logstash can use them.
+make vendor-elasticsearch
+
+Testing
+
+There are a few ways to run the tests. For development, using bin/logstash rspec <some spec> will suffice:
+
+% bin/logstash rspec spec/filters/grok.rb
+...................
+
+Finished in 0.123 seconds
+19 examples, 0 failures
+
+Alternately, if you have just built the tarball, you can run the tests specifically on those like so:
+
+make tarball-test
+
+If you want to run all the tests from source, do:
+
+make test
+
+Building
+
+Building is not required. You are highly recommended to download the releases we provide from the Logstash site!
+
+If you want to build the release tarball yourself, run:
+
+make tarball
+
+You can build rpms and debs, if you need those. Building rpms requires you have fpm, then do this:
+
+make package
+
+
+
+
+
+
+

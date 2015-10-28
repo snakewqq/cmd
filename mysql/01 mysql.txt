@@ -102,7 +102,6 @@ tmp_table_size = 64M
 table_open_cache       = 2000
 
 sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
-
 :wq
 
 #mysql slave config

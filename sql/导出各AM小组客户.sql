@@ -100,10 +100,10 @@ CASE b.`ismain`
     WHEN 1 THEN 'yes'
 END AS 'Is Main Contacts' 
 FROM ndb_client a,ndb_client_contact b,ndb_taxonomy c,ndb_taxonomy_term d,ndb_client_relation e,(
-SELECT a.clientid,a.amid FROM ndb_client_am_percentage a,(
-SELECT DISTINCT(clientid),MAX(percentage) AS percentage FROM ndb_client_am_percentage 
-GROUP BY clientid) b
-WHERE a.clientid = b.clientid AND a.percentage = b.percentage) f, ndb_employees g
+	SELECT a.clientid,a.amid FROM ndb_client_am_percentage a,(
+	SELECT DISTINCT(clientid),MAX(percentage) AS percentage FROM ndb_client_am_percentage 
+	GROUP BY clientid) b
+	WHERE a.clientid = b.clientid AND a.percentage = b.percentage) f, ndb_employees g
 WHERE a.id = b.`clientid` AND a.`amteamid` = d.`id` AND b.status = 1
 AND d.`taxonomyid` = c.`id` AND c.`name` = 'CLIENT AM LIST' AND d.name = 'PE/C'
 AND a.id = e.clientid AND e.status IN (5,4,8,7)

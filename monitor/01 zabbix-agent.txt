@@ -3,7 +3,7 @@ rpm -ivh http://repo.zabbix.com/zabbix/2.2/rhel/6/x86_64/zabbix-release-2.2-1.el
 
 put zabbix-release-2.2-1.el6.noarch.rpm
 
-cd /tmp
+cd /tmp && \
 rpm -ivh zabbix-release-2.2-1.el6.noarch.rpm
 
 yum -y install zabbix zabbix-agent
@@ -14,6 +14,8 @@ vi /etc/sysconfig/iptables
 service iptables restart
 
 配置zabbix_agentd.conf
+egrep -v "(^#|^$)" /etc/zabbix/zabbix_agentd.conf
+
 vim /etc/zabbix/zabbix_agentd.conf
 Server=192.168.5.87
 ServerActive=192.168.5.87:10051

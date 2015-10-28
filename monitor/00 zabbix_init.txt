@@ -7,9 +7,9 @@ put zabbix-release-2.2-1.el6.noarch.rpm epel-release-6-8.noarch.rpm
 yum -y install zabbix zabbix-get zabbix-server zabbix-web-mysql zabbix-web zabbix-agent
 
 vi /etc/my.cnf
-innodb_file_per_table
 symbolic-links=0
 character-set-server=utf8
+innodb_file_per_table
 :wq
 
 service mysqld restart

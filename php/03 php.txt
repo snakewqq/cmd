@@ -78,6 +78,7 @@ ln -s /usr/local/mysql/lib/libperconaserverclient.so /usr/lib64/libmysqlclient.s
 
 make -j8 && make install
 
+cd /tmp/php-5.5.9 && \
 cp php.ini-production /usr/local/php/etc/php.ini && \
 rm -rf /etc/php.ini && \
 ln -s /usr/local/php/etc/php.ini /etc/php.ini

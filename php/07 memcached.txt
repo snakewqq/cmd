@@ -60,7 +60,7 @@ pidfile="$basedir/${prog}.pid"
 #logfile="$basedir/memcached_log.txt"  
   
 # 设置memcached启动参数  
-ipaddr="0.0.0.0"          # 绑定侦听的IP地址  
+ipaddr="0.0.0.0"          		# 绑定侦听的IP地址  
 port="11211"                    # 服务端口  
 username="root"                 # 运行程序的用户身份  
 max_memory=100                   # default: 64M | 最大使用内存  

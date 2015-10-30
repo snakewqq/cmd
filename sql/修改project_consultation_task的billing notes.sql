@@ -1,0 +1,1 @@
+SELECT taskid,billnotes FROM ndb_project_task_receipts WHERE taskid = 320424

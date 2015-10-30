@@ -120,4 +120,10 @@ yum -y install vim
 mv /bin/vi /bin/vi_old
 ln -s /usr/bin/vim /bin/vi
 
+配置.vimrc
+put .vimrc
+mv /tmp/.vimrc /root/
+vi /tmp/test.sh
+:set paste
+:q!
 

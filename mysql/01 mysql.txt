@@ -58,6 +58,28 @@ mysql> select User,Password,Host from user;
 mysql> exit;
 至此，mysql安装已经全部结束。
 
+查看用户权限
+SELECT DISTINCT CONCAT('User: ''',user,'''@''',host,''';') AS query FROM mysql.user;
+show grants for 'elasticsearch'@'%';
+
+mysql> show grants for 'elasticsearch'@'%';
++--------------------------------------------------------------------------------------------------------------+
+| Grants for elasticsearch@%                                                                                   |
++--------------------------------------------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO 'elasticsearch'@'%' IDENTIFIED BY PASSWORD '*563D8C573A1A6FD8147B31D4ACFBAC48DD320DF4' |
+| GRANT SELECT, INSERT ON `galaxy`.* TO 'elasticsearch'@'%'                                                    |
+| GRANT SELECT ON `ndb`.* TO 'elasticsearch'@'%'                                                               |
++--------------------------------------------------------------------------------------------------------------+
+删除用户权限
+revoke USAGE ON *.* from 'elasticsearch'@'%';
+revoke SELECT, INSERT ON `galaxy`.* from 'elasticsearch'@'%';
+revoke SELECT ON `ndb`.* from 'elasticsearch'@'%';
+
+只给用户查询一张表格的权限
+grant select on database.table to username@'ip' identified by "password";
+
+
+
 mysql master config
 vi /etc/my.cnf
 [mysqld]

@@ -1,136 +1,92 @@
 安装Tomcat
 
-rm -rf /usr/local/tomcat7
-cd /usr
-cd /usr/local/tomcat7
-ls
-ls
-
-cd /
-tar zxvf /soft/apache-tomcat-7.0.55.tar.gz
-mv /apache-tomcat-7.0.55 /usr/local/tomcat7
-chmod +x /usr/local/tomcat7
-
-设置环境变量
-
-执行vim /etc/profile命令，添加环境变量代码如下
-
-#jdk config
-export JAVA_HOME=/usr/java/jdk1.7.0_67
-export CALSSPATH=$JAVA_HOME/lib/*.*  
-#tomcat config
-export TOMCAT_HOME=/usr/local/tomcat7
-export CATALINA_HOME=/usr/local/tomcat7
-#path config
-export PATH=$PATH:$JAVA_HOME/bin:$TOMCAT_HOME/bin
-
-执行指令source /etc/profile刷新环境变量
+cd /tmp
+put tomcat.tar.gz
+tar zxvf tomcat.tar.gz
+mv tomcat /usr/local/tomcat
+chmod +x /usr/local/tomcat
 
 启动Tomcat
+sh /usr/local/tomcat/bin/startup.sh
 
-sh /usr/local/tomcat7/bin/startup.sh
+vi /etc/sysconfig/iptables
+-A INPUT -m state --state NEW -m tcp -p tcp --dport 8000:8080 -j ACCEPT
+:wq
+service iptables restart
 
+修改tomcat端口
+vi /usr/local/tomcat/conf/server.xml
+/8080
+<Connector port="8080" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" URIEncoding="UTF-8" />
+:wq
+		   
 在火狐浏览器中打开网址http://localhost:8080测试
 
 关闭Tomcat命令
-sh /usr/local/tomcat7/bin/shutdown.sh
+sh /usr/local/tomcat/bin/shutdown.sh
 
 开机启动Tomcat脚本
-5.1、执行指令vi /etc/rc.d/init.d/tomcat生成脚本文件，内容如下
-
+5.1、执行指令
+vi /etc/init.d/tomcat
 #!/bin/bash
-
 #
-
 # /etc/rc.d/init.d/tomcat
-
 # init script for tomcat precesses
-
 #
-
 # processname: tomcat
-
 # description: tomcat is a j2se server
-
 # chkconfig: 2345 86 16
-
 # description: Start up the Tomcat servlet engine.
-
 if [ -f /etc/init.d/functions ]; then
-
-. /etc/init.d/functions
-
+    . /etc/init.d/functions
 elif [ -f /etc/rc.d/init.d/functions ]; then
-
-. /etc/rc.d/init.d/functions
-
+    . /etc/rc.d/init.d/functions
 else
-
-echo -e "\atomcat: unable to locate functions lib. Cannot continue."
-
-exit -1
-
+    echo -e "\atomcat: unable to locate functions lib. Cannot continue."
+    exit -1
 fi
 
 RETVAL=$?
-
-CATALINA_HOME="/usr/local/tomcat7" #tomcat安装目录
+CATALINA_HOME="/usr/local/tomcat"
 
 case "$1" in
+    start)
+        if [ -f $CATALINA_HOME/bin/startup.sh ];
+        then
+            echo $"Starting Tomcat"
+            $CATALINA_HOME/bin/startup.sh
+        fi
+    ;;
 
-start)
-
-if [ -f $CATALINA_HOME/bin/startup.sh ];
-
-then
-
-echo $"Starting Tomcat"
-
-$CATALINA_HOME/bin/startup.sh
-
-fi
-
-;;
-
-stop)
-
-if [ -f $CATALINA_HOME/bin/shutdown.sh ];
-
-then
-
-echo $"Stopping Tomcat"
-
-$CATALINA_HOME/bin/shutdown.sh
-
-fi
-
-;;
-
-*)
-
-echo $"Usage: $0 {start|stop}"
-
-exit 1
-
-;;
-
+    stop)
+        if [ -f $CATALINA_HOME/bin/shutdown.sh ];
+        then
+            echo $"Stopping Tomcat"
+            $CATALINA_HOME/bin/shutdown.sh
+        fi
+    ;;
+    
+    *)
+        echo $"Usage: $0 {start|stop}"
+        exit 1
+    ;;
 esac
 
 exit $RETVAL
 
+chmod +x /etc/init.d/tomcat
 
+chkconfig --add tomcat
 
-5.2、添加权限chmod 755 /etc/rc.d/init.d/tomcat，使得脚本文件可执行
-
-5.3、运行：chkconfig --add /etc/rc.d/init.d/tomcat #将其加到服务中
-
-5.4、在vim /usr/local/tomcat7/bin/catalina.sh文件中加入以下语句：
-
+vi /usr/local/tomcat/bin/catalina.sh
 #auto startup tomcat config
-export JAVA_HOME=/usr/java/jdk1.7.0_67
-export CATALINA_HOME=/usr/local/tomcat7
-export CATALINA_BASE=/usr/local/tomcat7
-export CATALINA_TMPDIR=/usr/local/tomcat7/temp
+export JAVA_HOME=/usr/local/java
+export CATALINA_HOME=/usr/local/tomcat
+export CATALINA_BASE=/usr/local/tomcat
+export CATALINA_TMPDIR=/usr/local/tomcat/temp
+:wq
 
 启动tomcat服务： service tomcat start
 停止tomcat服务: service tomcat stop

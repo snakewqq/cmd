@@ -252,3 +252,5 @@ the configuration file /usr/local/nginx/conf/nginx.conf was tested successfully
 # service nginx reload
 
 #nginx安装成功
+
+

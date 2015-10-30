@@ -84,6 +84,7 @@ ln -s /usr/local/php/etc/php.ini /etc/php.ini
 
 vim /etc/php.ini
 date.timezone = Asia/Shanghai
+short_open_tag = On
 :wq
 
 cp /usr/local/php/etc/php-fpm.conf.default /usr/local/php/etc/php-fpm.conf && \

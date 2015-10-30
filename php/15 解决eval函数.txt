@@ -1,0 +1,71 @@
+php中eval函数的危害与正确禁用方法
+投稿：shichen2014 字体：[增加 减小] 类型：转载 时间：2014-06-30
+这篇文章主要介绍了php中eval函数的危害与正确禁用方法,需要的朋友可以参考下
+
+php的eval函数并不是系统组件函数，因此我们在php.ini中使用disable_functions是无法禁止它的。
+
+但是eval()对于php安全来说具有很大的杀伤力，因此一般不用的情况下为了防止类似如下的一句话木马入侵，需要禁止！
+?
+1
+	
+<?php eval($_POST[cmd]);?>
+
+eval()使用范例：
+?
+1
+2
+3
+4
+5
+6
+7
+8
+	
+<?php
+$string = '杯子';
+$name = '咖啡';
+$str = '这个 $string 中装有 $name.<br>';
+echo $str;
+eval( "$str = "$str";" );
+echo $str;
+?>
+
+本例的传回值为：
+?
+1
+2
+	
+这个 $string 中装有 $name.
+这个 杯子 中装有 咖啡.
+
+或更高级点的是：
+?
+1
+2
+3
+4
+5
+6
+	
+<?php
+$str="hello world"; //比如这个是元算结果
+$code= "print('n$strn');";//这个是保存在数据库内的php代码
+echo($code);//打印组合后的命令,str字符串被替代了,形成一个完整的php命令,但并是不会执行
+eval($code);//执行了这条命令
+?>
+
+对于上面的咖啡的例子,在eval里面，首先字符串被替换了，其次替换完后形成一个完整的赋值命令被执行了.
+ 
+这类小马砸门的情况是需要禁止掉的！
+然而网上很多说使用disable_functions禁止掉eval的方法都是错误的！
+其实eval()是无法用php.ini中的disable_functions禁止掉的 ：
+because eval() is a language construct and not a function
+
+eval是zend的，因此不是PHP_FUNCTION 函数；
+
+那么php怎么禁止eval呢？
+
+如果想禁掉eval可以用php的扩展 Suhosin：
+安装Suhosin后在php.ini中load进来Suhosin.so，再加上suhosin.executor.disable_eval = on即可！
+
+总结,php的eval函数在php中是无法禁用的，因此我们也只有使用插件了！

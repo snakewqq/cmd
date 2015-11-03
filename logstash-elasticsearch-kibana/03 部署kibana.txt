@@ -12,6 +12,11 @@ vim kibana-3.1.1/config.js
 elasticsearch: "http://127.0.0.1:9200"
 :wq
 
+vi /etc/elasticsearch/elasticsearch.yml
+http.cors.allow-origin: "/.*/"
+http.cors.enabled: true
+:wq
+
 mv kibana-3.1.1 /usr/local/jetty/webapps/kibana
 
 开启防火墙

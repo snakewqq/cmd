@@ -1,4 +1,4 @@
-" This line should not be removed as it ensures that various options are
+    " This line should not be removed as it ensures that various options are
     " properly set to work with the Vim-related packages available in Debian.   debian.vim
 
     " Uncomment the next line to make Vim more Vi-compatible
@@ -37,10 +37,10 @@
     set autoindent        " 设置自动对齐(缩进)：即每行的缩进值与上一行相等；使用 noautoindent 取消设置
     "set smartindent        " 智能对齐方式
     set expandtab
-        set tabstop=4        " 设置制表符(tab键)的宽度
+	set tabstop=4        " 设置制表符(tab键)的宽度
     set softtabstop=4     " 设置软制表符的宽度    
     set nolist
-        set shiftwidth=4    " (自动) 缩进使用的4个空格
+	set shiftwidth=4    " (自动) 缩进使用的4个空格
     set cindent            " 使用 C/C++ 语言的自动缩进方式
     set cinoptions={0,1s,t0,n-2,p2s,(03s,=.5s,>1s,=1s,:1s     "设置C/C++语言的具体缩进方式
     "set backspace=2    " 设置退格键可用

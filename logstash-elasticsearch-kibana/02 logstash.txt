@@ -3,7 +3,7 @@ cd /tmp
 wget https://download.elasticsearch.org/logstash/logstash/logstash-1.4.2.tar.gz
 tar zxvf logstash-1.4.2.tar.gz
 mv logstash-1.4.2 /usr/local/logstash
-vi /etc/logstash.conf
+vim /etc/logstash.conf
 input {
 	redis {
 		host => "127.0.0.1"
@@ -25,10 +25,10 @@ output {
 :wq
 
 启动logstash
-nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf >/var/log/logstash.run.log 2>&1 &
+nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf > /var/log/logstash.run.log 2>&1 &
 
 开机启动配置
-echo "nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf >/var/log/logstash.run.log 2>&1 &" >> /etc/rc.local
+echo "nohup /usr/local/logstash/bin/logstash agent --verbose --config /etc/logstash.conf > /var/log/logstash.run.log 2>&1 &" >> /etc/rc.local
 
 部署远程LogStash
 wget https://download.elasticsearch.org/logstash/logstash/logstash-1.4.2.tar.gz

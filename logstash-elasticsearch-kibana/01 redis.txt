@@ -4,7 +4,7 @@ centos6安装redis-2.8.19.tar.gz
 yum -y install gcc-c++ tcl wget
 
 2、获取安装文件
-cd tmp 
+cd /tmp
 wget http://download.redis.io/releases/redis-2.8.19.tar.gz
 
 3、解压文件
@@ -15,14 +15,13 @@ mv redis-2.8.19 /usr/local/redis
 cd /usr/local/redis
 
 5、编译安装
-make
-make install
+make && make install
 
 6、设置配置文件路径
 cp redis.conf /etc/
 
 7、修改配置文件
-vi /etc/redis.conf
+vim /etc/redis.conf
 #maxmemory <bytes>
 #2G
 maxmemory <2147483648>
@@ -36,7 +35,6 @@ daemonize yes
 ps -ef | grep redis 
 vi /etc/sysconfig/iptables
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 6379 -j ACCEPT
-:wq
 service iptables restart
 
 10、使用客户端测试redis

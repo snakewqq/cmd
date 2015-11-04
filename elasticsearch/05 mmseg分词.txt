@@ -1,0 +1,262 @@
+开源项目地址：https://github.com/medcl/elasticsearch-analysis-mmseg/tree/1.3.0
+注意对应的版本号
+Mmseg ver	ES version
+master	2.0.0 -> master
+1.5.0	2.0.0
+1.4.0	1.7.0
+1.3.0	1.6.0
+1.2.2	1.0.0
+1.2.1	0.90.2
+1.2.0	0.90.0
+1.1.2	0.20.1
+1.1.1	0.19.x
+
+cd /tmp
+wget https://github.com/medcl/elasticsearch-analysis-mmseg/archive/1.3.0.zip
+unzip 1.3.0.zip
+cd /tmp/elasticsearch-analysis-mmseg-1.3.0
+
+编译jar
+mvn clean install -Dmaven.test.skip
+
+安装plugin
+cd /usr/share/elasticsearch/bin/ 
+./plugin --install analysis-mmseg --url file:///tmp/elasticsearch-analysis-mmseg-1.3.0/target/releases/elasticsearch-analysis-mmseg-1.3.0.zip
+
+下载相关配置词典文件到config目录
+cd /etc/elasticsearch/  
+wget http://github.com/downloads/medcl/elasticsearch-analysis-mmseg/mmseg.zip --no-check-certificate  
+unzip mmseg.zip  
+rm mmseg.zip  
+
+配置
+vi /etc/elasticsearch/elasticsearch.yml
+index:
+  analysis:
+    tokenizer:
+      mmseg_maxword:
+        type: mmseg
+        seg_type: "max_word"
+      mmseg_complex:
+        type: mmseg
+        seg_type: "complex"
+      mmseg_simple:
+        type: mmseg
+        seg_type: "simple"
+  analysis:
+    analyzer:
+      mmseg:
+        alias: [news_analyzer, mmseg_analyzer]
+        type: org.elasticsearch.index.analysis.MMsegAnalyzerProvider
+
+index.analysis.analyzer.default.type : "mmseg"
+:wq
+
+ik&mmseg并存配置：
+index:
+  analysis:
+    tokenizer:
+      mmseg_maxword:
+          type: mmseg
+          seg_type: "max_word"
+      mmseg_complex:
+          type: mmseg
+          seg_type: "complex"
+      mmseg_simple:
+          type: mmseg
+          seg_type: "simple"
+    analyzer:
+      ik:
+          alias: [news_analyzer_ik,ik_analyzer]
+          type: org.elasticsearch.index.analysis.IkAnalyzerProvider
+          use_smart: false
+      ik_smart:
+          type: ik
+          use_smart: true
+      mmseg_max:
+          type: org.elasticsearch.index.analysis.MMsegAnalyzerProvider
+          tokenizer: mmseg_maxword
+      mmseg_simp:
+          type: org.elasticsearch.index.analysis.MMsegAnalyzerProvider
+          tokenizer: mmseg_simple
+      mmseg_comp:
+          type: org.elasticsearch.index.analysis.MMsegAnalyzerProvider
+          tokenizer: mmseg_complex
+
+
+index.analysis.analyzer.default.type : "ik"
+
+重启es
+service elasticsearch restart
+
+检查配置是否成功
+tail -f /var/log/elasticsearch/mmseg_cluster.log
+
+开启marvel sense
+http://192.168.5.192:9200/_plugin/marvel/sense/index.html
+
+1.create a index
+PUT /index
+
+2.create a mapping
+POST /index/fulltext/_mapping
+{
+    "fulltext": {
+             "_all": {
+            "indexAnalyzer": "mmseg",
+            "searchAnalyzer": "mmseg",
+            "term_vector": "no",
+            "store": "false"
+        },
+        "properties": {
+            "content": {
+                "type": "string",
+                "store": "no",
+                "term_vector": "with_positions_offsets",
+                "indexAnalyzer": "mmseg",
+                "searchAnalyzer": "mmseg",
+                "include_in_all": "true",
+                "boost": 8
+            }
+        }
+    }
+}
+
+3.indexing some docs
+POST /index/fulltext/1
+{content:"美国留给伊拉克的是个烂摊子吗"}
+
+POST /index/fulltext/2
+{content:"公安部：各地校车将享最高路权"}
+
+POST /index/fulltext/3
+{content:"中韩渔警冲突调查：韩警平均每天扣1艘中国渔船"}
+
+POST /index/fulltext/4
+{content:"中国驻洛杉矶领事馆遭亚裔男子枪击 嫌犯已自首"}
+
+4.query with highlighting
+
+get /index/_search?pretty
+POST /index/_analyze?analyzer=mmseg&pretty=true&text=中华人民共和国国歌
+
+
+POST /index/fulltext/_search?pretty
+{
+    "query" : { "term" : { "content" : "中国" }},
+    "highlight" : {
+        "pre_tags" : ["<tag1>", "<tag2>"],
+        "post_tags" : ["</tag1>", "</tag2>"],
+        "fields" : {
+            "content" : {}
+        }
+    }
+}
+
+here is the query result
+
+{
+    "took": 14,
+    "timed_out": false,
+    "_shards": {
+        "total": 5,
+        "successful": 5,
+        "failed": 0
+    },
+    "hits": {
+        "total": 2,
+        "max_score": 2,
+        "hits": [
+            {
+                "_index": "index",
+                "_type": "fulltext",
+                "_id": "4",
+                "_score": 2,
+                "_source": {
+                    "content": "中国驻洛杉矶领事馆遭亚裔男子枪击 嫌犯已自首"
+                },
+                "highlight": {
+                    "content": [
+                        "<tag1>中国</tag1>驻洛杉矶领事馆遭亚裔男子枪击 嫌犯已自首 "
+                    ]
+                }
+            },
+            {
+                "_index": "index",
+                "_type": "fulltext",
+                "_id": "3",
+                "_score": 2,
+                "_source": {
+                    "content": "中韩渔警冲突调查：韩警平均每天扣1艘中国渔船"
+                },
+                "highlight": {
+                    "content": [
+                        "均每天扣1艘<tag1>中国</tag1>渔船 "
+                    ]
+                }
+            }
+        ]
+    }
+}
+
+have fun.
+
+参考语句：
+PUT /index
+
+POST /index/fulltext/_mapping
+{
+    "fulltext": {
+             "_all": {
+            "indexAnalyzer": "mmseg",
+            "searchAnalyzer": "mmseg",
+            "term_vector": "no",
+            "store": "false"
+        },
+        "properties": {
+            "content": {
+                "type": "string",
+                "store": "no",
+                "term_vector": "with_positions_offsets",
+                "indexAnalyzer": "mmseg",
+                "searchAnalyzer": "mmseg",
+                "include_in_all": "true",
+                "boost": 8
+            }
+        }
+    }
+}
+
+POST /index/fulltext/1
+{content:"美国留给伊拉克的是个烂摊子吗"}
+
+POST /index/fulltext/2
+{content:"公安部：各地校车将享最高路权"}
+
+POST /index/fulltext/3
+{content:"中韩渔警冲突调查：韩警平均每天扣1艘中国渔船"}
+
+POST /index/fulltext/4
+{content:"中国驻洛杉矶领事馆遭亚裔男子枪击 嫌犯已自首"}
+
+POST /index/fulltext/3
+{content:"中韩渔警冲突调查：韩警平均每天扣5艘中国渔船"}
+
+get /index/_search?pretty
+
+POST /index/fulltext/_search?pretty
+{
+    "query" : { "term" : { "content" : "渔警" }},
+    "highlight" : {
+        "pre_tags" : ["<tag1>", "<tag2>"],
+        "post_tags" : ["</tag1>", "</tag2>"],
+        "fields" : {
+            "content" : {}
+        }
+    }
+}
+
+POST /index/_analyze?analyzer=mmseg&pretty=true&text=中韩渔警冲突调查：韩警平均每天扣1艘中国渔船
+
+
+

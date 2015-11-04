@@ -1,9 +1,9 @@
 安装Tomcat
 
-cd /tmp
 put tomcat.tar.gz
-tar zxvf tomcat.tar.gz
-mv tomcat /usr/local/tomcat
+cd /tmp && \
+tar zxvf tomcat.tar.gz && \
+mv tomcat /usr/local/tomcat && \
 chmod +x /usr/local/tomcat
 
 启动Tomcat
@@ -15,7 +15,7 @@ vi /etc/sysconfig/iptables
 service iptables restart
 
 修改tomcat端口
-vi /usr/local/tomcat/conf/server.xml
+vim /usr/local/tomcat/conf/server.xml
 /8080
 <Connector port="8080" protocol="HTTP/1.1"
                connectionTimeout="20000"
@@ -76,11 +76,10 @@ esac
 
 exit $RETVAL
 
-chmod +x /etc/init.d/tomcat
-
+chmod +x /etc/init.d/tomcat && \
 chkconfig --add tomcat
 
-vi /usr/local/tomcat/bin/catalina.sh
+vim /usr/local/tomcat/bin/catalina.sh
 #auto startup tomcat config
 export JAVA_HOME=/usr/local/java
 export CATALINA_HOME=/usr/local/tomcat

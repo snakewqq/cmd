@@ -5,7 +5,7 @@
 /*
 1. ndb
 */
-SELECT id,FROM_UNIXTIME(CRE_DT) FROM ndb_project ORDER BY id DESC;
+SELECT id,FROM_UNIXTIME(CRE_DT) FROM ndb.ndb_project ORDER BY id DESC;
 
 /*
 2. dw_simp
@@ -25,6 +25,8 @@ SELECT
 	#LEFT JOIN dw_simp.tmp_tb13 pumanager ON pumanager.projectid=p.id
 	WHERE p.id = 158562
 	
+	/*
+	
 	SELECT *,FROM_UNIXTIME(CRE_DT),FROM_UNIXTIME(UPD_TS) FROM ndb.ndb_project_client WHERE projectid IN( 158562,158564,158568)
 	
 	DELETE FROM ndb.ndb_project_client WHERE id IN (35669,35672,35675)
@@ -32,6 +34,7 @@ SELECT
 	SELECT projectid,clientid,COUNT(*) FROM ndb.ndb_project_client
 	GROUP BY projectid,clientid 
 	HAVING COUNT(*) > 1
+	*/
 	
 
 /*

@@ -76,7 +76,8 @@ revoke SELECT, INSERT ON `galaxy`.* from 'elasticsearch'@'%';
 revoke SELECT ON `ndb`.* from 'elasticsearch'@'%';
 
 只给用户查询一张表格的权限
-grant select on database.table to username@'ip' identified by "password";
+GRANT SELECT ON `ndb`.`ndb_v_es_consultant_all` TO 'elasticsearch'@'%' 
+flush privileges
 
 
 

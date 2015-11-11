@@ -8,7 +8,7 @@ h.englishname AS am1,
 e.name AS am_team
 FROM ndb_contact_others c 
 INNER JOIN ndb_contacts b ON b.contactid = c.`id` AND b.contacttype =9 AND b.type =2
-INNER JOIN ndb_client_contact a ON a.id = b.`objectid` AND a.tele60=1
+INNER JOIN ndb_client_contact a ON a.id = b.`objectid` AND a.tele60=1 AND a.status=1
 INNER JOIN ndb_client d ON a.clientid=d.id
 INNER JOIN ndb_taxonomy_term e ON d.`amteamid` = e.`id`
 INNER JOIN ndb_taxonomy f ON e.taxonomyid = f.id AND f.`name` = 'CLIENT AM LIST'
@@ -22,4 +22,4 @@ LEFT JOIN (
 	GROUP BY a.clientid
 ) g ON a.clientid = g.clientid
 LEFT JOIN ndb_employees h ON g.am1 = h.id 
-INTO OUTFILE '/tmp/tele60_contact_email_1.csv' FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' LINES TERMINATED BY '\n'
+INTO OUTFILE '/tmp/tele60_contact_email_2.csv' FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' LINES TERMINATED BY '\n'

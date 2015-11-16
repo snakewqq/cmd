@@ -122,8 +122,8 @@ mysql> flush tables with read lock;
 查看主数据库的状态(并记录下File字段和Position字段的值，在配置从服务器时有用到)
 mysql> show master status\G
 *************************** 1. row ***************************
-             File: mysqlmaster-bin.000004
-         Position: 53571406
+             File: mysqlmaster-bin.000001
+         Position: 961436
      Binlog_Do_DB: 
  Binlog_Ignore_DB: 
 Executed_Gtid_Set: 
@@ -150,7 +150,7 @@ service mysqld start
 
 
 在从数据库服务器上设置主数据库服务器向从数据库服务器同步
-mysql> change master to master_host = '192.168.5.241',master_user='repl',master_password='repl@4321',master_log_file='mysqlmaster-bin.000004',master_log_pos=53571406;
+mysql> change master to master_host = '192.168.5.241',master_user='repl',master_password='repl@4321',master_log_file='mysqlmaster-bin.000001',master_log_pos=961436;
 
 启动从数据库复制线程
 mysql> start slave;

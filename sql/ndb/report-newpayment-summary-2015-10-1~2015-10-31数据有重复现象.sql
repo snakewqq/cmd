@@ -1,6 +1,6 @@
 /*
 Yang Pei反映report-newpayment-summary-2015-10-1~2015-10-31数据有重复现象
-taskid in (342271,342235,341687,343395)
+taskid in (343286,343121)
 */
 SELECT 
 `pt`.`id` AS `taskid`,
@@ -58,7 +58,7 @@ LEFT JOIN `ndb_consultant_bank_account` `ba` ON `ba`.`consultantid` = IFNULL(`pc
 LEFT JOIN `ndb_employees` `e` ON `e`.`id` = `pte`.`uid` 
 LEFT JOIN `ndb_employees` `e2` ON `e2`.`id` = IFNULL(`pct`.`taskmanagerid`,`ptc`.`manageuid`)
 LEFT JOIN `ndb_location` `nl` ON `nl`.`id` = `ba`.`bank_location` 
-WHERE `p`.`category` <> 5 AND `pt`.`status` = 8 AND pt.id IN (342271,342235,341687,343395)
+WHERE `p`.`category` <> 5 AND `pt`.`status` = 8 AND pt.id IN (343286,343121)
 
 SELECT pt.id,p.id FROM ndb_project_task pt 
 LEFT JOIN `ndb_payment_report` `pr` ON `pr`.`taskid` = `pt`.`id` AND `pr`.`payment_status` IN (1,3)
@@ -68,14 +68,23 @@ LEFT JOIN `ndb_project_task_common` `ptc` ON `ptc`.`id` = `pt`.`id`
 LEFT JOIN `ndb_project_task_payment` `ptp` ON `ptp`.`taskid` = `pt`.`id`
 LEFT JOIN `ndb_project_task_receipts` `ptr` ON `ptr`.`taskid` = `pt`.`id`
 LEFT JOIN `ndb_project` `p` ON `p`.`id` = IFNULL(`pct`.`projectid`,`ptc`.`projectid`)
-LEFT JOIN `ndb_project_team` `pte` ON `pte`.`projectid` = `p`.`id` AND `pte`.`role` = 2
+#LEFT JOIN `ndb_project_team` `pte` ON `pte`.`projectid` = `p`.`id` AND `pte`.`role` = 2
 #LEFT JOIN `ndb_client` `c` ON `c`.`id` = `pct`.`clientid` 
 #LEFT JOIN `ndb_consultant` `con` ON `con`.`id` = IFNULL(`pct`.`consultantid`,`ptc`.`consultantid`)
 #LEFT JOIN `ndb_consultant_bank_account` `ba` ON `ba`.`consultantid` = IFNULL(`pct`.`consultantid`,`ptc`.`consultantid`) AND `ba`.`ismain` = 1
 #LEFT JOIN `ndb_employees` `e` ON `e`.`id` = `pte`.`uid` 
 #LEFT JOIN `ndb_employees` `e2` ON `e2`.`id` = IFNULL(`pct`.`taskmanagerid`,`ptc`.`manageuid`)
-WHERE pt.id IN (342271,342235,341687,343395)
+WHERE pt.id IN (343286,343121)
 
-SELECT *,FROM_UNIXTIME(CRE_DT) FROM `ndb_project_team` WHERE projectid IN (158397,158459,158459,158459) AND `role` = 2
+SELECT *,FROM_UNIXTIME(CRE_DT) FROM `ndb_project_team` WHERE projectid IN (138507,158568) AND `role` = 2
 
-DELETE FROM ndb_project_team WHERE id IN (263628,263980)
+DELETE FROM ndb_project_team WHERE id IN (101448,264616)
+
+CREATE UNIQUE INDEX ndb_project_team_unique ON ndb_project_team(projectid,uid,role);  
+
+SELECT projectid,uid,role,COUNT(*) FROM ndb_project_team
+WHERE `role` = 2
+GROUP BY projectid,uid,role
+HAVING COUNT(*) > 1
+ORDER BY COUNT(*) DESC
+

@@ -43,29 +43,6 @@ ndb_client e,ndb_taxonomy_term f
 WHERE a.id = b.objectid AND a.status IN (1,0) AND b.contactid = c.id AND b.contacttype=1 AND b.type=2 AND c.mobile = d.mobile 
 AND a.clientid = e.id AND e.`amteamid` = f.`id` 
 
-
-
-SELECT \
-e.id AS client_id, \
-e.name AS client_name, \
-a.id AS contact_id,  \
-a.`chinesename` AS contact_name, \
-c.mobile AS contact_mobile, \
-CASE a.status   \
-    WHEN 1 THEN 'active'  \
-    WHEN 2 THEN 'transfer' \
-    WHEN 0 THEN 'inactive' \
-END   \
-AS contact_status, \
-f.name AS 'AmTeam' \
-FROM ndb_client_contact a, ndb_contacts b, ndb_contact_mobile c \
-INNER JOIN (  \
-	SELECT c.mobile FROM ndb_client_contact a, ndb_contacts b, ndb_contact_mobile c  \
-	WHERE a.id = b.objectid AND a.status IN (1,0) AND b.contactid = c.id AND b.contacttype=1 AND b.type=2  \
-	GROUP BY c.mobile  \
-	HAVING COUNT(*) > 1) d,ndb_client e,ndb_taxonomy_term f \
-WHERE a.id = b.objectid AND a.status IN (1,0) AND b.contactid = c.id AND b.contacttype=1 AND b.type=2 AND c.mobile = d.mobile \
-AND a.clientid = e.id AND e.`amteamid` = f.`id` \
 INTO OUTFILE '/tmp/spring_client_mobile_duplicate_7.csv' FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' LINES TERMINATED BY '\n';
 
 

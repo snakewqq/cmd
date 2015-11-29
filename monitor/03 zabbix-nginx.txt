@@ -1,0 +1,119 @@
+﻿Zabbix监控
+
+# Zabbix自定义Key(参数)配置路径：
+/etc/zabbix/zabbix_agentd.d/
+
+# Zabbix Key(参数)获取脚本路径：
+/etc/zabbix/scripts/
+
+监控Nginx:
+被监控端安装zabbix-agent
+
+vim /etc/zabbix/zabbix_agentd/userparameter_nginx.conf
+UserParameter=nginx.accepts,/etc/zabbix/scripts/nginx_status accepts
+UserParameter=nginx.handled,/etc/zabbix/scripts/nginx_status handled
+UserParameter=nginx.requests,/etc/zabbix/scripts/nginx_status requests
+UserParameter=nginx.connections.active,/etc/zabbix/scripts/nginx_status active
+UserParameter=nginx.connections.reading,/etc/zabbix/scripts/nginx_status reading
+UserParameter=nginx.connections.writing,/etc/zabbix/scripts/nginx_status writing
+UserParameter=nginx.connections.waiting,/etc/zabbix/scripts/nginx_status waiting
+:wq
+
+vim /etc/zabbix/scripts/nginx_status
+#!/bin/bash
+source /etc/bashrc >/dev/null 2>&1
+source /etc/profile  >/dev/null 2>&1
+HOST=`ifconfig eth0 | sed -n '/inet /{s/.*addr://;s/ .*//;p}'`
+PORT=8088
+nginxstatus=http://$HOST:$PORT/nginxstatus
+
+# Functions to return nginx stats
+function checkavailable {
+    code=$(curl -o /dev/null -s -w %{http_code} ${nginxstatus})
+    if [ "${code}" == "200" ]
+    then
+        return 1
+    else
+        echo  0
+    fi
+}
+function active { checkavailable|| curl -s "${nginxstatus}" | grep 'Active' | awk '{print $3}' }
+function reading { checkavailable|| curl -s "${nginxstatus}" | grep 'Reading' | awk '{print $2}' }
+function writing { checkavailable|| curl -s "${nginxstatus}" | grep 'Writing' | awk '{print $4}' }
+function waiting { checkavailable|| curl -s "${nginxstatus}" | grep 'Waiting' | awk '{print $6}' }
+function accepts { checkavailable|| curl -s "${nginxstatus}" | awk NR==3 | awk '{print $1}' }
+function handled { checkavailable|| curl -s "${nginxstatus}" | awk NR==3 | awk '{print $2}' }
+function requests { checkavailable|| curl -s "${nginxstatus}" | awk NR==3 | awk '{print $3}' }
+case "$1" in
+    nginx_site_dicovery)
+        nginx_site_dicovery
+        ;;
+    active)
+        active
+        ;;
+    reading)
+        reading
+        ;;
+    writing)
+        writing
+        ;;
+    waiting)
+        waiting
+        ;;
+    accepts)
+        accepts
+        ;;
+    handled)
+        handled
+        ;;
+    requests)
+        requests
+        ;;
+    *)
+        echo "Usage: $0 {active |reading |writing |waiting |accepts |handled |requests }"
+esac
+:wq
+
+vim /usr/local/nginx/conf/sites/nginx_status.conf
+
+#nginx.conf
+######################################################################
+#   server {
+#        listen 127.0.0.1:80;
+#        server_name 127.0.0.1;
+#        location /nginxstatus {
+#                 stub_status on;
+#                 access_log off;
+#                 allow 127.0.0.1;
+#                 allow 192.168.11.0/24;
+#                 deny all;        
+#        }
+#        location ~ ^/(phpfpmstatus)$ {
+#                 include fastcgi_params;
+#                 fastcgi_pass unix:/tmp/fpm.sock;
+#                 fastcgi_param SCRIPT_FILENAME $fastcgi_script_name;
+#        }
+#    }
+######################################################################
+server {
+    listen  8088;
+    server_name 192.168.5.158;
+    location /nginxstatus
+    {
+        stub_status on;
+        access_log off;
+        allow 127.0.0.1;
+        allow 192.168.0.0/16; #Server IP
+        deny all;
+    }
+}
+
+
+service zabbix-agent restart
+
+参数获取测试，在zabbix服务端执行命令，成功将获取相应的值。
+zabbix_get -s192.168.5.183 -p 10050 -k tcp_connect.established
+
+测试成功后可在Zabbix web界面中Create Item，在Key输入框中填入需要监控的参数。
+或直接导入模板: 
+zbx_export_templates_tcp.xml

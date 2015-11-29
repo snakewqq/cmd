@@ -116,8 +116,12 @@ rpm -ivh rpmforge-release-0.5.3-1.el6.rf.x86_64.rpm
 yum -y install pigz
 
 安装vim
-yum -y install vim
-mv /bin/vi /bin/vi_old
+cd && \
+rm -rf .vimrc && \
+scp root@192.168.5.137:/root/.vimrc ~/
+
+yum -y install vim && \
+mv /bin/vi /bin/vi_old && \
 ln -s /usr/bin/vim /bin/vi
 
 配置.vimrc

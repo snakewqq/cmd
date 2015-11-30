@@ -1,0 +1,33 @@
+﻿
+http://Server_IP/zabbix
+登录Zabbix
+
+vim /etc/zabbix/zabbix_server.conf
+StartVMwareCollectors=5		
+VMwareFrequency=60 
+VMwareCacheSize=8M 
+
+StartVMwareCollectors（0-250）:只有大于0时才能是该功能生效，意为预先配置的vmware监控实例数量。servicenum < StartVMwareCollectors < (servicenum * 2)
+VMwareCacheSize（256K-2G）:内存中维护的vmware集群结构的大小
+VMwareFrequency（10-864000）:Zabbix获取更新vmware集群结构的最小间隔时间，单位为分钟。
+
+-------------------------------- Add ESXI Host to Zabbix --------------------------------
+Configuration > Hosts > Create host
+
+[Host]#添加ESXI主机
+Host name:192.168.5.130
+Visible name:ESXI_130
+Groups:ESXI_130
+Agent interfaces:IP address 192.168.5.130:10050
+
+[Templates]#选择模板
+Add: Template Virt VMware
+
+[Macros]#配置参数
+{$PASSWORD} = password
+{$URL} = https://192.168.5.130/sdk
+{$USERNAME} = root
+
+Save
+-----------------------------------------------------------------------------------------
+

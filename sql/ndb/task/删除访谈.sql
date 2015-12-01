@@ -19,7 +19,7 @@
 删除的sql  (软删除)
 */
 
-UPDATE ndb_project_task SET STATUS = 8 WHERE id IN (343286,343121);
+UPDATE ndb_project_task SET STATUS = 0 WHERE id IN (354284,354291);
 
 Task ID: 343286
 Task ID: 343121

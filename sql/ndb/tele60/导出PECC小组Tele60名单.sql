@@ -25,7 +25,8 @@ INNER JOIN ndb_contacts b ON b.contactid = c.`id` AND b.contacttype =9 AND b.typ
 INNER JOIN ndb_client_contact a ON a.id = b.`objectid` AND a.tele60=1 AND a.status=1
 INNER JOIN ndb_client d ON a.clientid=d.id
 INNER JOIN ndb_taxonomy_term e ON d.`amteamid` = e.`id`
-INNER JOIN ndb_taxonomy f ON e.taxonomyid = f.id AND f.`name` = 'CLIENT AM LIST' AND e.name='PSF'
+INNER JOIN ndb_taxonomy f ON e.taxonomyid = f.id AND f.`name` = 'CLIENT AM LIST' 
+#AND e.name='global'
 LEFT JOIN (	
 	SELECT a.`clientid`,MAX(a.amid) AS am1 FROM (
 		SELECT a.clientid,a.amid FROM ndb_client_am_percentage a,(
@@ -38,8 +39,9 @@ LEFT JOIN (
 LEFT JOIN ndb_employees h ON g.am1 = h.id 
 LEFT JOIN ndb_location i ON a.`location`=i.`id`
 LEFT JOIN ndb_client_relation j ON d.id = j.clientid AND j.status IN (5,4,8,7)
+WHERE h.englishname = 'Adam Guo'
 #WHERE i.name IS NULL
-INTO OUTFILE '/tmp/psf_tele60_contact_email_3.csv' FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' LINES TERMINATED BY '\n'
+INTO OUTFILE '/tmp/pec_tele60_contact_email_15.csv' FIELDS TERMINATED BY ',' OPTIONALLY ENCLOSED BY '"' LINES TERMINATED BY '\n'
 
 /*
 Yiwen Lin要求没有location的增加导出mobile\telephone

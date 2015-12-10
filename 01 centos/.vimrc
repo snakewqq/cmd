@@ -172,11 +172,3 @@ set termencoding=utf-8,gb18030,gbk
 set encoding=utf-8 
 set fileencoding=utf-8
 set term=xterm
-
-if has('mouse')
-     set mouse-=a
- endif
-
-set paste
-
-

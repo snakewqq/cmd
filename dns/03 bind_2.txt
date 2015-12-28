@@ -1,0 +1,124 @@
+DNS正反向解析
+
+   DNS(Domain Name Service)域名服务、就是域名解析服务器、所谓名称解析的过程就是某个应用程序基于某个搜索键在指定的数据库中查询、
+   而后查询到某些对应的键以后与之对应的键导出来的过程。    
+   NDS是互联网的基础设施类的服务、这是一种协议、协议最后是要实现的、协议实现的软件很多、我们前面安装配置好的就是其中一个、我们
+   也是用这个BIND来实现DNS的、他运行时监听在UDP的53号端口上、同时监听TCP的53号端口、两种协议的53号端口都被监听了。
+wKioL1Mi3yijHocWAAKTNt9KY6g081.jpg
+wKiom1Mi31LCW_wXAAHkT48k8Qc964.jpg
+
+   域名：如 http://tanxw.blog.51cto.com/  --> IP地址
+
+   一级域分为三类
+       组织域：.com、.org、.mil、.gov、.edu、.net、
+       国家域：.cn、.hk、.tw、.us、.jp、.ir、.uk
+       反向域：.in-addr.arpa
+wKioL1Mi3v3jrpefAAFYbGzvZPQ614.jpg
+
+   DNS服务器类型：
+       主DNS服务器
+       辅助DNS服务器
+       缓存DNS服务器
+   全球有13组DNS根服务器、11台在美国、一组在挪威、一组在日本、DNS服务重兵把守、他的安全性有多重要、一旦被攻击全球都互联网中断、可想而知。
+
+   那DNS服务是怎么实现的呢、接下来我们就来说说他的实现过程及基本步骤，上一篇我们已经安装好了BIND这个软件包了、基于这个软件我们来实现DNS服务器：
+
+   先来个案例，假如我们注册了一个域名：tanxw.com、有域名了、解析IP地址就可以挂你的网站上去了、这里我们的网段为172.16.251.、在这个服务内我们
+   提供mail服务：172.16.251.128
+   提供web服务：172.16.251.176
+   提供pop服务：是mail的别名，指向mail
+   提供ftp服务：是www的别名，指向www
+   还有一台DNS服务器：当前服务器地址 172.16.251.171
+
+   看看我们怎么解析：
+
+正向解析
+   首先配置主配置文件，定义区域、配置文件在/etc/named.confg下、有哪些区域需要定义的、一般主配置文件中通常有三个区域、一个是根、还有
+   本地localhost、以及127.0.0.1的反向区域。
+   其次我们每个区域要完成解析要有区域数据文件、所以还要定义区域数据库文件、而区域数据文件一般都在/var/named/中、运行named的进程还是
+   named这个用户、组也是、这些区域文件或配置文件都不允许额外的其他用户访问、所以他们的权限通常都为640的。
+   
+   查看全球13个根节点的服务：
+   # dig -t NS .
+
+   于是我们就来配置一下以上案例的相关配置信息了、定义我们的区域
+   # vi /etc/named/named.conf
+
+   在后定义我们注册的那个域
+   zone "cap.local." IN {
+          type master;
+          file "cap.local.zone";
+   };
+   
+   再切换到/var/named/下创建cap.local.zone数据文件、根据我们上规划好的：
+   # vi /var/named/cap.local.zone
+   $TTL 84600
+@       IN SOA  dns.cap.local. root (
+                                            20151228       ; serial
+                                            2H      ; refresh
+                                            10M      ; retry
+                                            7D      ; expire
+                                            1D )    ; minimum
+@           IN NS       dns
+dns         IN A        192.168.5.192
+:wq
+
+然后修改一下权限和属主属组：
+   # chown root:named /var/named/cap.local.zone
+   # chmod 640 /var/named/cap.local.zone
+   
+   检查主配置文件和区域数据文件有没有语法错误：
+   # named-checkconf    这个是检查主配置文件语法的
+   这个是检查区域数据文件语法的、指定区域和指定文件
+   # named-checkzone "cap.local" /var/named/cap.local.zone
+
+   重启服务后、解析域名：
+   # service named restart
+   # dig -t A dns.cap.local @192.168.5.192
+
+   
+--------------------------------------------------------------------------------------------------------------------------------------------------
+   反向解析
+   好了、这样我们就可以解析域名了，这个是正向解析、正向解析就是把域名解析成IP地下、而反向的则是把IP地址解析成域名、那我们再来看看反向的怎么解析呢：
+
+   第一步：在我们的named的配置文件中定义一个反向的区域、把我们的网络地址反过来写：如下
+   # vim /etc/named/named.conf
+   zone "5.168.192.in-addr.arpa" IN {
+       type master;
+       file "5.168.192.zone";
+   };
+
+   再切换到/var/named/目录下创建区域数据文件、这里我们复制正向的那个区域数据文件进行修改：
+   # vi /var/named/5.168.192.zone
+   $TTL 43200
+   @       IN      SOA     dns.cap.local.  root (
+                           20151228
+                           2H
+                           10M
+                           7D
+                           1D )
+           IN      NS      dns.cap.local.
+   192     IN      PTR     dns.cap.local.
+   :wq
+   
+   chown root:named /var/named/5.168.192.zone
+   # chmod 640 /var/named/5.168.192.zone
+   
+   这两个配置好之后还要改一下你的NDS服务器的指向、编辑/etc/resolv.conf:
+   # vi /etc/resolv.conf
+   domain cap.local
+   search cap.local
+   nameserver 127.0.0.1
+   :wq
+   
+   检查主配置文件和区域数据文件有没有语法错误：
+   # named-checkconf    这个是检查主配置文件语法的
+   这个是检查区域数据文件语法的、指定区域和指定文件
+   # named-checkzone "cap.local" /var/named/cap.local.zone
+
+   重启服务后、解析域名：
+   # service named restart
+
+   然后我们就可以来测试一下看了：
+   # dig -x 192.168.5.192
+   

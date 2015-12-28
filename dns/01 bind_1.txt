@@ -1,0 +1,245 @@
+前言：
+
+了解named
+   如果说我们安装的rpm包不符合我们的要求怎么办、比如说我们想起用named的线程模式、比如说我想让他禁用IPv6、比如说我们想启用某种特性、
+   而rpm在编译时没有提供、那这时我们只能去手动编译安装了，那如何去编译安装named：
+
+   编译安装named有一个麻烦之处、所有的配置文件你都得自己去建立、像/var/named/这个目录、编译安装时连这个目录都不会存在、得自己去创建
+   这个目录、里面的各种配置文件、区域文件、像根的、localhost的、以及localhost的反向的、都得手动去做、连我们service启动脚本都没、所以
+   不到万不得以最好别去编译他、因为很麻烦、但对于我们学习来讲、我们应该是变得法的去折腾自己、活着就是折腾嘛、那我们各种方法都去摸索一
+   遍、将来我们真要用得着了也好应对。
+
+   首先上来就同步一下我们的时间：
+   # hwclock -s
+
+   然后检查一下安装环境所需要的开发包组、确保所依赖的开发包组都装有了、我这里没有装、那我就用yum来装一下吧：
+   # yum -y groupinstall "Development Tools"
+   # yum -y groupinstall "Server Platform Development"
+   # yum grouplist
+
+   装好后查看一下、最主要两项：Development tools和Server Platform Development
+
+   然后我们就去下载源码包了、这里我就去www.isc.org/donloads/官方网站下载了、支持使用的版本是9.9.5、当前使用的稳定版、这个版本中已经自
+   带dlz了、以前的版本没有自带的、安装时要装这个dlz的、如果我们将来人希望指资源记录基于数据库的方式存放的话、而且要能够现场检索、现场
+   响应的话、则自定义启用dlz功能即可、下载好我们就去解压缩：
+   wget ftp://ftp.isc.org/isc/bind9/9.9.5/bind-9.9.5.tar.gz
+   # tar xf bind-9.9.5.tar.gz
+   
+   这里注意一下:我们要去编译安装一个服务、首先要去看他的README、然后看他的INSTALL、大体了解一下有没有我们所需要的信息、当然我们这里就
+   不多说了、直接往下走：
+   # ./configure --prefix=/usr/local/bind9 --sysconfdir=/etc/named --enable-threads --enable-epoll --disable-chroot
+
+   --prefix=/usr/local/bind9：指定编译存放的路径
+   --sysconfdir=/etc/named：指定配置文件存放路径
+   --enable-threads：启用了多线程的功能
+
+   然后make和make install就OK了、安装完成就可以去配置了
+   # make && make install
+   
+   我们前面说过、编译安装named什么都得自己创建、用户也没有的、所以我们得给他创建一个用户先、而且用户是系统用户、要加-r、系统用户不会给他创建家目录的：
+   先创建用户组：
+   # groupadd -g 53 -r named
+   # useradd -g named -r named
+   
+   这里我们先去创建named的工作目录、然后创建named.ca这个文件：
+   # mkdir /var/named
+
+   这里@后面的IP是能访问互联网的服务器、生成的数据存在到/var/named/named.ca中去
+   # dig -t NS . @8.8.8.8 > /var/named/named.ca
+   
+   然后再去编辑/etc/named/named.conf的配置文件、这个文件也没有、需要自己去编写的：
+   # vi /etc/named/named.conf           
+		#定义全局的
+        options {
+                #定义named的固定工作路径
+                directory "/var/named";
+        };
+        #定义根的区域
+        zone "." IN {
+                type hint;        #类型、hint表示为根的
+                file "named.ca";  #指定的文件
+        };
+        #定义本本地的区域
+        zone "localhost" IN {
+                type master;           #类型属于master、属于自己的
+                file "named.localhost"; #指定的文件
+                allow-transfer { none; }; #不允许任何人传送的
+        };
+        #定义反向解析的
+        zone "0.0.127.in-addr.arpa" IN {
+                type master;            #类型属于master、属于自己的
+                file "named.loopback";    #指定的文件
+                allow-transfer { none; };#不允许任何人传送的
+        };
+
+   配置文件中的三个文件named.ca、named.localhost、named.loopback上面已经提供有一个了named.ca了、还有这两个named.localhost、named.loopback、同样我们也得提供、也是在/var/named目录下创建：
+
+   # vi /var/named/named.localhost
+$TTL 86400    ;定义宏
+@       IN      SOA     localhost       admin.localhost. (
+                        2014031101    ;序列号
+                         2H            ;刷新时间
+                         10M            ;失败时重试间隔时间
+                         7D            ;过期时间
+                         1D)            ;否定答案的时间
+                 IN      NS      localhost.
+localhost.       IN      A       172.0.0.1
+   
+   然后复制一份改写named.loopback的文件：
+   # cp /var/named/named.localhost /var/named/named.loopback
+   # vim named.loopback
+$TTL 86400
+@       IN      SOA     localhost       admin.localhost. (
+                         2014031101
+                         2H
+                         10M
+                         7D
+                         1D )
+                 IN      NS      localhost.
+1                IN      PTR     localhost.
+
+   如果想用rndc远程登录可以生成一个/etc/named/rndc.conf的配置文件:
+   # /usr/local/bind9/sbin/rndc-confgen -r /dev/urandom > /etc/named/rndc.conf 
+
+   到这里我们别忘了给named.conf和rndc.conf修改属主属组和权限：
+   # chown root:named /etc/named/named.conf
+   # chown root:named /etc/named/rndc.conf
+   # chown root:named /var/named/*
+   # chmod 640 /etc/named/named.conf
+   # chmod 640 /etc/named/rndc.conf
+   # chmod 640 /var/named/*
+   
+   为了方便、我们在PATH下加个的路径、/etc/profile.d/named.sh：
+   # vi /etc/profile.d/named.sh
+   export PATH=/usr/local/bind9/bin:/usr/local/bind9/sbin:$PATH
+
+   在我们的终端重新登录一下就可以生效了
+
+   好的、检查一下我们的区域文件有没有语法错误、然后就可以启动了：
+   # named-checkzone "localhost" /var/named/named.localhost 
+   # named-checkzone "0.0.127.in-addr.arpa" /var/named/named.loopback
+   # named -u named    #这个表示以named用户启动named
+   # ss -tunl | grep "\<53\>"  然后再查看一下有没有监听53号端口
+   
+   防火墙开启53端口
+   
+   最后、因为他是一个服务、所以我们要为他提供一个服务脚本、以后可以利用脚本启动、编辑/etc/rc.d/init.d/named：
+# vi /etc/rc.d/init.d/named
+    #!/bin/bash
+    #
+    # description: named daemon  描述信息
+    # chkconfig: - 25 88    启动和关闭级别
+    #
+    # 启动named的pid文件、其实文件路径我们都可以自己指定的
+    pidFile=/usr/local/bind9/var/run/named.pid
+    # 启动服务时的锁文件、判断一个服务是不是启动是靠这个锁文件的
+    lockFile=/var/lock/subsys/named
+    # named的配置文件路径
+    confFile=/etc/named/named.conf
+        # 判断/etc/rc.d/init.d/functions路径下的functios是否存在这个文件、存在就sources进来
+        [ -r /etc/rc.d/init.d/functions ] && . /etc/rc.d/init.d/functions
+    # 定义启动方法
+    start() {
+            # 判断锁文件是否存在、如果存在就说服务已经启动并退出
+            if [ -e $lockFile ]; then
+                    echo "named is already running..."
+                    exit 0
+            fi
+            # 打印服务已经启动的信息
+            echo -n "Starting named:"
+            # 调用functions中的daemon方法、并用--pidfile指定pid文件在什么地方、还指定用户和配置文件、我们本来是直接启用named的、现在利用daemon这个函数来启用这个服务、他会获得很多额外的属性、如果成功了会帮我们打印什么[ OK ]的、还可以做判断
+            daemon --pidfile "$pidFile" /usr/local/bind9/sbin/named -u named -c "$confFile"
+            RETVAL=$?
+            echo
+            # 判断上面的命令是否执行成功、说明启动成功
+            if [ $RETVAL -eq 0 ]; then
+                    # 如果判断成功、就创建锁文件
+                    touch $lockFile
+                    return $RETVAL
+            else
+                    # 否则、就是失败了、那就删除锁文件和pid文件
+                    rm -f $lockFile $pidFile
+                    return 1
+            fi
+    }
+    # 定义停止方法
+    stop() {
+            # 如果锁文件不存在
+            if [ ! -e $lockFile ]; then
+                    # 说明服务还没有启动
+                    echo "named is stopped."
+            fi
+            echo -n "Stopping named:"
+            killproc named
+            RETVAL=$?
+            echo
+            # 判断以上的命令是否执行停止成功、如果成功
+            if [ $RETVAL -eq 0 ];then
+                    # 删除锁文件和pid文件
+                    rm -f $lockFile $pidFile
+                    return 0
+            else
+                    # 否则打印说没能正常停止
+                    echo "Cannot stop named."
+                    # 调用functions中的函数、会打印失败
+                    failure
+                    return 1
+            fi
+    }
+    # 定义重启服务
+    restart() {
+            # 调用停止方法
+            stop
+            # 睡眠2秒
+            sleep 2
+            # 调用启动方法
+            start
+    }
+    # 定义重新加载服务方法
+    reload() {
+            echo -n "Reloading named: "
+            # killprco HUP信号、named进程的信号
+            killproc named -HUP
+            RETVAL=$?
+            echo
+            return $RETVAL
+    }
+    # 定义服务状态
+    status() {
+            if pidof named &> /dev/null; then
+                    echo -n "named is running..."
+                    success
+                    echo
+            else
+                    echo -n "named is stopped..."
+                    success
+                    echo
+            fi
+    }
+    # 定义错误提示信息
+    usage() {
+            echo "Usage: named {start|stop|restart|status|reload}"
+    }
+    case $1 in
+    start)
+            start ;;
+    stop)
+            stop ;;
+    restart)
+            restart ;;
+    status)
+            status ;;
+    reload)
+            reload ;;
+    *)
+            usage
+            exit 4 ;;
+    esac
+
+   OK、到这里保存退出，给他个执行权限
+   # chmod +x /etc/rc.d/init.d/named
+
+   再加到chkconfig里面去：
+   # chkconfig --add named
+   # chkconfig --list named
+   

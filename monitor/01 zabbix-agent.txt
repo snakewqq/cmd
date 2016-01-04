@@ -16,7 +16,7 @@ service iptables restart
 配置zabbix_agentd.conf
 egrep -v "(^#|^$)" /etc/zabbix/zabbix_agentd.conf
 
-vim /etc/zabbix/zabbix_agentd.conf
+vi /etc/zabbix/zabbix_agentd.conf
 Server=192.168.5.87
 ServerActive=192.168.5.87:10051
 Hostname=dw_192.168.3.87

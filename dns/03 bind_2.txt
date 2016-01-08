@@ -4,10 +4,8 @@ DNS正反向解析
    而后查询到某些对应的键以后与之对应的键导出来的过程。    
    NDS是互联网的基础设施类的服务、这是一种协议、协议最后是要实现的、协议实现的软件很多、我们前面安装配置好的就是其中一个、我们
    也是用这个BIND来实现DNS的、他运行时监听在UDP的53号端口上、同时监听TCP的53号端口、两种协议的53号端口都被监听了。
-wKioL1Mi3yijHocWAAKTNt9KY6g081.jpg
-wKiom1Mi31LCW_wXAAHkT48k8Qc964.jpg
 
-   域名：如 http://tanxw.blog.51cto.com/  --> IP地址
+   域名：如 http://dns.cap.local  --> IP地址
 
    一级域分为三类
        组织域：.com、.org、.mil、.gov、.edu、.net、

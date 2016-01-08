@@ -48,7 +48,7 @@
    # dig -t NS . @a.root-servers.net > /var/named/named.ca
    或者直接：
    vi /var/named/named.ca
-   ; <<>> DiG 9.9.4-P2-RedHat-9.9.4-12.P2 <<>> +norec NS . @a.root-servers.net
+; <<>> DiG 9.9.4-P2-RedHat-9.9.4-12.P2 <<>> +norec NS . @a.root-servers.net
 ;; global options: +cmd
 ;; Got answer:
 ;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 26229
@@ -149,8 +149,8 @@ $TTL 86400    ;定义宏
 localhost.       IN      A       172.0.0.1
    
    然后复制一份改写named.loopback的文件：
-   # cp /var/named/named.localhost /var/named/named.loopback
-   # vim named.loopback
+   # vi /var/named/named.loopback
+   
 $TTL 86400
 @       IN      SOA     localhost       admin.localhost. (
                          2014031101
@@ -170,6 +170,10 @@ $TTL 86400
    为了方便、我们在PATH下加个的路径、/etc/profile.d/named.sh：
    # vi /etc/profile.d/named.sh
    export PATH=/usr/local/bind9/bin:/usr/local/bind9/sbin:$PATH
+   
+   chmod +x /etc/profile.d/named.sh
+   
+   source /etc/profile.d/named.sh
 
    在我们的终端重新登录一下就可以生效了
 
@@ -299,5 +303,6 @@ $TTL 86400
 
    再加到chkconfig里面去：
    # chkconfig --add named
+   chkconfig named on
    # chkconfig --list named
    

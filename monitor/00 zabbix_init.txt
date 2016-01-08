@@ -6,42 +6,60 @@ put zabbix-release-2.2-1.el6.noarch.rpm epel-release-6-8.noarch.rpm
 
 yum -y install zabbix zabbix-get zabbix-server zabbix-web-mysql zabbix-web zabbix-agent
 
+安装MySQL、PHP
+
 vi /etc/my.cnf
 symbolic-links=0
 character-set-server=utf8
 innodb_file_per_table
 :wq
 
+#初始化数据库：
+drop database zabbix;
+
 service mysqld restart
 mysql -uroot -p
 mysql> create database zabbix character set utf8;
+mysql> grant all privileges on zabbix.* to zabbix@'%' identified by "zabbix1234";
 mysql> use zabbix;
-mysql> source /usr/share/doc/zabbix-server-mysql-2.2.10/create/schema.sql;
-mysql> source /usr/share/doc/zabbix-server-mysql-2.2.10/create/images.sql;
-mysql> source /usr/share/doc/zabbix-server-mysql-2.2.10/create/data.sql;
+mysql> source /usr/share/doc/zabbix-server-mysql-2.2.11/create/schema.sql;
+mysql> source /usr/share/doc/zabbix-server-mysql-2.2.11/create/images.sql;
+mysql> source /usr/share/doc/zabbix-server-mysql-2.2.11/create/data.sql;
 mysql> show tables;
 mysql> exit;
 
 配置zabbix
 egrep -v "(^#|^$)" /etc/zabbix/zabbix_server.conf
-vim /etc/zabbix/zabbix_server.conf
+vi /etc/zabbix/zabbix_server.conf
 DBHost=127.0.0.1
-DBUser=admin
-DBPassword=admin1234
+DBUser=zabbix
+DBPassword=zabbix1234
 #DBSocket=/var/lib/mysql/mysql.sock
 CacheSize=256M
 :wq
 
-mkdir -p /etc/zabbix/alertscripts
+mkdir -p /etc/zabbix/alertscripts && \
 mkdir -p /etc/zabbix/externalscripts
+
+vi /etc/php.ini
+date.timezone = "Asia/Shanghai"
+wq
+
+vi /etc/httpd/conf/httpd.conf
+ServerName localhost:80
+wq
 
 vi /etc/sysconfig/iptables
 -A INPUT -m state --state NEW -m tcp -p tcp --dport 10050:10051 -j ACCEPT
 :wq
 service iptables restart
+setenforce 0
 
 启动zabbix
-service zabbix-server start
+chkconfig zabbix-server on && \
+chkconfig httpd on && \
+service zabbix-server start && \
+service zabbix-agent start && \
 service httpd start
 
 启动浏览器：
@@ -51,6 +69,7 @@ http://192.168.5.87/zabbix
 安装成功后，使用如下账户登录后台：
 账户：admin
 密码：zabbix
+
 
 
 

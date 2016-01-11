@@ -1,0 +1,7 @@
+
+SELECT p.id as project_id,p.name as project_name,pt.id as task_id,
+ptcc.clientid as client_id,c.name as client_name,ptcc.contactid as client_contact_id,cc.chinesename as client_contact_name ,
+FROM_UNIXTIME(ptcc.starttime,'%Y-%m-%d') as starttime 
+ from (SELECT * from ndb_project where category=9 and  FROM_UNIXTIME(starttime,'%Y-%m-%d') >'2015-01-01' ) p INNER JOIN ndb_project_task_common_contact ptcc on ptcc.projectid= p.id
+  inner join ndb_project_task pt on pt.id = ptcc.id 
+ LEFT JOIN ndb_client c on ptcc.clientid=c.id left join ndb_client_contact cc on ptcc.contactid=cc.id where pt.status !=0  order by p.starttime desc,ptcc.starttime desc  ;

@@ -1,0 +1,14 @@
+SELECT d.id as client_id,d.name as client_name,e.name as client_AM_team,h.englishname as am from ndb_client d 
+INNER JOIN ndb_taxonomy_term e ON d.`amteamid` = e.`id`
+INNER JOIN ndb_taxonomy f ON e.taxonomyid = f.id AND f.`name` = 'CLIENT AM LIST'
+AND (e.name='global' or e.name='PE/C')
+LEFT JOIN (	
+	SELECT a.`clientid`,MAX(a.amid) AS am1 FROM (
+		SELECT a.clientid,a.amid FROM ndb_client_am_percentage a,(
+			SELECT DISTINCT(clientid),MAX(percentage) AS percentage FROM ndb_client_am_percentage 
+			GROUP BY clientid ) b
+		WHERE a.clientid = b.clientid AND a.percentage = b.percentage
+	) a
+	GROUP BY a.clientid
+) g ON d.id = g.clientid
+LEFT JOIN ndb_employees h ON g.am1 = h.id where h.englishname = 'Adam Guo';

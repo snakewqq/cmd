@@ -1,5 +1,9 @@
-SELECT  d.id as client_id,d.name as client_name, 'Unlimited' as charge_type ,cc.size as contract_size ,
-e.name as client_AM_team,h.englishname as am from ndb_client d 
+
+SELECT  b.client_id as client_id,b.client_name as client_name, 'Unlimited' as charge_type ,cc.size as contract_size ,
+b.client_AM_team as client_AM_team,b.am as am  from  
+(select d.id as client_id,d.name as client_name, d.chargetype as charge_type  ,
+e.name as client_AM_team,h.englishname as am 
+from ndb_client d 
 INNER JOIN ndb_taxonomy_term e ON d.`amteamid` = e.`id`
 INNER JOIN ndb_taxonomy f ON e.taxonomyid = f.id AND f.`name` = 'CLIENT AM LIST' 
 AND e.name='PE/C'
@@ -12,4 +16,4 @@ LEFT JOIN (
 	) a
 	GROUP BY a.clientid
 ) g ON d.id = g.clientid 
-LEFT JOIN ndb_employees h ON g.am1 = h.id inner join ndb_client_contract cc on cc.clientid=d.id where d.chargetype=2 and cc.`status`=0;
+LEFT JOIN ndb_employees h ON g.am1 = h.id  where d.chargetype=2 ) b  LEFT OUTER JOIN ndb_client_contract cc on cc.clientid=b.client_id where cc.closedate> UNIX_TIMESTAMP(now()) group by b.client_id;

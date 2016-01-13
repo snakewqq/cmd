@@ -1,0 +1,9 @@
+SELECT a.client_id as client_id,a.client_name as client_name,a.client_contact_id as client_contact_id ,a.client_contact_name as client_contact_name ,a.position as position, a.am as am ,a.`status` as status ,
+ncm.mobile as mobile FROM (SELECT d.id as client_id,d.name as client_name,cc.id as client_contact_id ,cc.chinesename as client_contact_name ,cc.position as position, b.am as am ,( case cc.`status` when 0 then 'inactive' 
+when 1 then 'active' when 2 then 'transfer' else '' end) as status 
+ from ndb_client d 
+INNER JOIN ndb_taxonomy_term e ON d.`amteamid` = e.`id`
+INNER JOIN ndb_taxonomy f ON e.taxonomyid = f.id AND f.`name` = 'CLIENT AM LIST' 
+AND e.name='PE/C' inner join ( SELECT GROUP_CONCAT(e.englishname) as AM,cap.clientid as client_id from ndb_client_am_percentage  cap left join ndb_employees e on cap.amid = e.id GROUP BY cap.clientid ) b
+ on d.id = b.client_id  inner join ndb_client_contact cc on d.id = cc.clientid  where cc.`status` =0 ) a left join (SELECT * from ndb_info.ndb_contacts where type =2 and contacttype =1) f on a.client_contact_id = f.objectid  
+left join ndb_info.ndb_contact_mobile ncm  on ncm.id= f.contactid ;
